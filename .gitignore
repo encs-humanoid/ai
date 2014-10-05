@@ -1,2 +1,3 @@
 .vagrant
 Vagrantfile
+ros_local.cfg
