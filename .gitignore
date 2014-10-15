@@ -4,3 +4,4 @@ ros_local.cfg
 runs.out
 vocab_lemmas.txt
 train_lemmas.txt
+all_lemmas.txt
