@@ -45,6 +45,7 @@ def generate_fp(lemma, lemmas):
 	ls = set() # set to collect unique lemmas for the fingerprint
 
 	# 1. Find lemmas in the same synset and add their indexes to the fingerprint
+	# Note: the bit for the lemma itself is set in this process
 	for l in lemma.synset().lemmas():
 		ls.add(l)
 	for l in lemma.antonyms():
@@ -86,7 +87,6 @@ def generate_fp(lemma, lemmas):
 	for s in lemma.synset().part_meronyms():
 		for l in s.lemmas():
 			ls.add(l)
-	print lemma.synset().similar_tos()
 	for s in lemma.synset().similar_tos():
 		for l in s.lemmas():
 			ls.add(l)
@@ -100,6 +100,7 @@ def generate_fp(lemma, lemmas):
 	for l in ls:
 		set_bit(fp, lemmas, l)
 
+	fp.sort()
 	return fp
 
 
