@@ -13,7 +13,7 @@ def set_bit(fp, lemmas, lemma):
 	if lemma.name().find('.') < 0: # exclude lemmas with a dot in the name, because WN cannot parse them
 		lookup = lemma.synset().name() + '.' + lemma.name()
 		if lemmas.has_key(lookup):
-			fp.append(lemmas[lookup])
+			fp.add(lemmas[lookup])
 		else:
 			pass # ignore if lemma not found in the list for our vocab
 	# else TODO look up synset instead and search it for a matching lemma name to handle the dot issue
@@ -41,7 +41,7 @@ def read_lemmas(filename):
 
 
 def generate_fp(lemma, lemmas):
-	fp = list()
+	fp = set()
 	ls = set() # set to collect unique lemmas for the fingerprint
 
 	# 1. Find lemmas in the same synset and add their indexes to the fingerprint
@@ -100,7 +100,6 @@ def generate_fp(lemma, lemmas):
 	for l in ls:
 		set_bit(fp, lemmas, l)
 
-	fp.sort()
 	return fp
 
 
@@ -115,5 +114,3 @@ if __name__ == "__main__":
 			print lemmas[lookup], lemma
 			fp = generate_fp(lemma, lemmas)
 			f.write(lookup + ":" + str(fp) + "\n")
-
-

@@ -7,14 +7,20 @@ import unittest
 import wordnet_fp
 
 class WordnetFingerprintTest(unittest.TestCase):
+
 	def testOverlap(self):
-		fp1 = [1, 2, 3, 4]
-		fp2 = [2, 3, 4, 5]
+		fp1 = {1, 2, 3, 4}
+		fp2 = {2, 3, 4, 5}
 		self.assertEqual(wordnet_fp.overlap(fp1, fp2), 3) # has overlap
-		fp1 = [1, 2, 3, 4]
-		fp2 = [5, 6, 7, 8]
+		fp1 = {1, 2, 3, 4}
+		fp2 = {5, 6, 7, 8}
 		self.assertEqual(wordnet_fp.overlap(fp1, fp2), 0) # no overlap
 
+
+	def testIntersection(self):
+		fp1 = {1, 2, 3, 4}
+		fp2 = {5, 2, 1, 7}
+		self.assertEqual(wordnet_fp.intersection(fp1, fp2), {1, 2})
 
 if __name__ == "__main__":
 	unittest.main()
