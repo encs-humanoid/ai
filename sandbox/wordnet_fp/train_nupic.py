@@ -1,4 +1,8 @@
 #!/usr/bin/python
+#===================================================================
+# Train the NuPIC spatial pooler to recognize a set of fingerprints
+# Copyright 2014, IEEE ENCS Humanoid Robot Project
+#===================================================================
 
 import numpy as np
 from random import randrange, random
@@ -26,6 +30,12 @@ class LemmaSDR():
 			self.sdrs[sdr_key] = 0
 		self.sdrs[sdr_key] += 1
 		self.last_sdr_key = sdr_key
+
+	def is_bit_set(self, i):
+		try:
+			return self.fp.index(i) >= 0
+		except: # catch ValueError if i is not found in the list
+			return 0
 
 
 class SPTrainer():
@@ -81,21 +91,28 @@ class SPTrainer():
 			self.lemma_to_sdr[lemma] = LemmaSDR(lemma, fp)
 		self.lemma_to_sdr[lemma].set_sdr(sdr)
 
-    
-# the length of the fingerprint can be determined by `wc -l vocab_lemmas.txt`
-print "instantiate spatial pooler"
-trainer = SPTrainer(61955)
 
-for i in xrange(10):
-	print "round", i
-	with open("train_lemmas.txt", "r") as f:
+def process_fingerprints(filename, process):
+	with open(filename, "r") as f:
 		for line in f:
 			values = line.strip().split(":")
 			lemma = values[0]
 			fp = eval(values[1])
-			trainer.run(lemma, fp)
+			process(lemma, fp)
+    
 
-for lemma in trainer.lemma_to_sdr.keys():
-	lemmaSDR = trainer.lemma_to_sdr[lemma]
-	print lemma, lemmaSDR.sdrs[lemmaSDR.last_sdr_key]
+if __name__ == "__main__":
+	# the length of the fingerprint can be determined by `wc -l vocab_lemmas.txt`
+	print "instantiate spatial pooler"
+	trainer = SPTrainer(61955)
+
+	for i in xrange(10):
+		print "round", i
+		process_fingerprints("train_lemmas.txt",
+			lambda lemma, fp:
+				trainer.run(lemma, fp))
+
+	for lemma in trainer.lemma_to_sdr.keys():
+		lemmaSDR = trainer.lemma_to_sdr[lemma]
+		print lemma, lemmaSDR.sdrs[lemmaSDR.last_sdr_key]
 
