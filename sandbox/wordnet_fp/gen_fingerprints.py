@@ -40,8 +40,7 @@ def read_lemmas(filename):
 	return lemmas, lemmas_list
 
 
-def generate_fp(lemma, lemmas):
-	fp = set()
+def get_related_lemmas(lemma):
 	ls = set() # set to collect unique lemmas for the fingerprint
 
 	# 1. Find lemmas in the same synset and add their indexes to the fingerprint
@@ -96,6 +95,13 @@ def generate_fp(lemma, lemmas):
 	for s in lemma.synset().substance_meronyms():
 		for l in s.lemmas():
 			ls.add(l)
+
+	return ls
+
+
+def generate_fp(lemma, lemmas):
+	fp = set()
+	ls = get_related_lemmas(lemma, lemmas)
 
 	for l in ls:
 		set_bit(fp, lemmas, l)
