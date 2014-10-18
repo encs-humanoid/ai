@@ -22,7 +22,7 @@ for lemma_name in vocab:
 	for synset in wn.synsets(lemma_name):
 		for lemma in synset.lemmas():
 			if lemma.name().find('.') < 0: # exlude lemmas with a dot in the name, because WN cannot parse them
-				lemmas.add(synset.name() + '.' + lemma.name())
+                               lemmas.add(synset.name() + '.' + lemma.name())
 
 
 with open('vocab_lemmas.txt', 'w') as f:
