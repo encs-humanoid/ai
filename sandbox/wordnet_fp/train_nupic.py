@@ -3,12 +3,14 @@
 # Train the NuPIC spatial pooler to recognize a set of fingerprints
 # Copyright 2014, IEEE ENCS Humanoid Robot Project
 #===================================================================
+from __future__ import division
 
+import pickle
 import numpy as np
 from random import randrange, random
+
 #from nupic.research.spatial_pooler import SpatialPooler as SP
 from nupic.bindings.algorithms import SpatialPooler as SP
-
 
 class LemmaSDR():
 	"""
@@ -21,8 +23,9 @@ class LemmaSDR():
 	def __init__(self, lemma, fp):
 		self.lemma = lemma
 		self.fp = fp
-		self.sdrs = dict() # maps SDR to count
+		self.sdrs = dict()		# maps SDR to count
 		self.last_sdr_key = None
+		self.predicted = False 		# flags if count of last_sdr_key was incremented on last call to set_sdr
 
 
 	def set_sdr(self, sdr):
@@ -30,7 +33,12 @@ class LemmaSDR():
 		if not self.sdrs.has_key(sdr_key):
 			self.sdrs[sdr_key] = 0
 		self.sdrs[sdr_key] += 1
+		if sdr_key == self.last_sdr_key:
+			self.predicted = True
+		else:
+			self.predicted = False
 		self.last_sdr_key = sdr_key
+
 
 	def is_bit_set(self, i):
 		try:
@@ -96,25 +104,39 @@ class SPTrainer():
 
 def process_fingerprints(filename, process):
 	with open(filename, "r") as f:
+		N = 0
 		for line in f:
 			values = line.strip().split(":")
 			lemma = values[0]
 			fp = eval(values[1])
 			process(lemma, fp)
+			N += 1
+		return N
     
 
 if __name__ == "__main__":
 	print "instantiate spatial pooler"
 	trainer = SPTrainer(4096)
 
-	for i in xrange(100):
+	round = 0
+	percent_prediction = 0
+	while round < 100 and percent_prediction < 100:
 		print "==================================================="
-		print "round", i
-		process_fingerprints("train_lemmas.txt",
+		round += 1
+		print "round", round
+		N = process_fingerprints("train_lemmas.txt",
 			lambda lemma, fp:
 				trainer.run(lemma, fp))
 
+		count = 0
 		for lemma in trainer.lemma_to_sdr.keys():
-			lemmaSDR = trainer.lemma_to_sdr[lemma]
-			print lemma, lemmaSDR.sdrs[lemmaSDR.last_sdr_key]
+			if trainer.lemma_to_sdr[lemma].predicted == True:
+				count += 1
+			#lemmaSDR = trainer.lemma_to_sdr[lemma]
+			#print lemma, lemmaSDR.sdrs[lemmaSDR.last_sdr_key]
+		percent_prediction = (count / N) * 100
+		print "N=", N, "count=", count, "pct=", percent_prediction
+
+	with open("spatial_pooler.p", "w") as f:
+		pickle.dump(trainer, f)
 
