@@ -4,3 +4,4 @@ ros_local.cfg
 runs.out
 *.txt
 *.pyc
+junk*
