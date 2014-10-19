@@ -107,26 +107,12 @@ class SPTrainer():
 def process_fingerprints(filename, process):
 	with open(filename, "r") as f:
 		N = 0
-		lemmas = list()
-		fps = list()
 		for line in f:
 			values = line.strip().split(":")
 			lemma = values[0]
-			fp = eval(values[1])
-			lemmas.append(lemma)
-			fps.append(fp)
-			N += 1
-
-		# shuffle the order that the lemmas are presented to the spatial pooler
-		# This is trying to avoid training cycles where the same sequence of
-		# inputs causes the learning algorithm to follow the same pattern of
-		# learning and forgetting, which may prevent convergence
-		order = [i for i in xrange(N)]
-		shuffle(order)
-		for i in xrange(N):
-			lemma = lemmas[order[i]]
-			fp = fps[order[i]]
+			fp = set(eval(values[1]))
 			process(lemma, fp)
+			N += 1
 		return N
     
 

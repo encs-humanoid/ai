@@ -43,5 +43,21 @@ class WordnetFingerprintTest(unittest.TestCase):
 		self.assertEqual(str(match_list), "[set([4, 5, 6]), set([3, 4, 5]), set([2, 3, 4])]")
 		self.assertEqual(str(index_list), "[3, 2, 1]")
 
+
+	def test_get_word_fp(self):
+		generator = wordnet_fp.WordFingerprintGenerator("fingerprints.txt")
+		word = "guy"
+		pos = "n"
+		word_fp = generator.get_word_fp(word, pos)
+		lemma_fp1 = generator.get_lemma_fp('guy.n.01.guy')
+		lemma_fp2 = generator.get_lemma_fp('guy.n.01.cat')
+		lemma_fp3 = generator.get_lemma_fp('guy.n.01.hombre')
+		lemma_fp4 = generator.get_lemma_fp('guy.n.01.bozo')
+		self.assertEqual(wordnet_fp.overlap(word_fp, lemma_fp1), len(lemma_fp1), "word fingerprint contains lemma 1 fingerprint")
+		self.assertEqual(wordnet_fp.overlap(word_fp, lemma_fp2), len(lemma_fp2), "word fingerprint contains lemma 2 fingerprint")
+		self.assertEqual(wordnet_fp.overlap(word_fp, lemma_fp3), len(lemma_fp3), "word fingerprint contains lemma 3 fingerprint")
+		self.assertEqual(wordnet_fp.overlap(word_fp, lemma_fp4), len(lemma_fp4), "word fingerprint contains lemma 4 fingerprint")
+		
+
 if __name__ == "__main__":
 	unittest.main()
