@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
 	input_sents = gutenberg.sents(input_file)
 
-	with open("sentences.txt", "a") as f:
+	with open("train_sentences.txt", "a") as f:
 		generator = wordnet_fp.WordFingerprintGenerator("fingerprints.txt")
 		for sent in input_sents:
 			pos_tagged_sent = nltk.pos_tag(sent)
