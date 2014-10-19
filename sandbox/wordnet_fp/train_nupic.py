@@ -17,6 +17,8 @@ import numpy as np
 from nupic.bindings.algorithms import SpatialPooler as SP
 from nupic.research.TP10X2 import TP10X2 as TP
 
+import wordnet_fp
+
 class LemmaSDR():
 	"""
 	A lemma and its fingerprint and NuPIC generated SDR
@@ -150,10 +152,14 @@ class TPTrainer():
 		self.tp.compute(self.active_array, enableLearn = self.is_learning, computeInfOutput = self.compute_inference)
 
 		if self.compute_inference:
-			self.predicted_sdr = tp.getPredictedState().max(axis=1).nonzero()
+			self.predicted_sdr = set(self.tp.getPredictedState().max(axis=1).nonzero()[0].flat)
+			print self.predicted_sdr
 			lemma_sdrs = np.array([l for l in self.sp_trainer.lemma_to_sdr.values()])
-			all_lemma_sdrs = [l.sdrs[l.last_sdr_key] for l in lemma_sdrs]
-			_, indexes = find_matching(self.predicted_sdr, all_lemma_sdrs, sys.maxsize, 10)
+			# convert string key to list by stripping front and end:
+			# Example: (array([   8,   12, ... , 1018]),)
+			all_lemma_sdrs = [set(eval(l.last_sdr_key[7:-3])) for l in lemma_sdrs]
+			_, indexes = wordnet_fp.find_matching(self.predicted_sdr, all_lemma_sdrs, 1, 10)
+			print "matching indexes=", indexes
 			self.predicted_lemmas = lemma_sdrs[indexes]
 
 def process_fingerprints(filename, process):

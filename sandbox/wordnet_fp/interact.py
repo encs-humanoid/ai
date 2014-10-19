@@ -12,14 +12,14 @@
 #         Peter Ljunglof <peter.ljunglof@heatherleaf.se>
 # URL: <http://nltk.org/>
 #===================================================================
-from __future__ import print_function
-
 import itertools
+import readline
 import sys
 from nltk.grammar import Nonterminal
 
 from gen_sentences import *
 from train_nupic import *
+from wordnet_fp import *
 
 
 def generate(grammar, start=None, depth=None, n=None):
@@ -83,11 +83,16 @@ if __name__ == '__main__':
 	tp_trainer.is_learning = False
 	tp_trainer.compute_inference = True
 
-	print("Enter some text:")
-	for line in sys.stdin:
+	generator = wordnet_fp.WordFingerprintGenerator("fingerprints.txt")
+
+	while True:
+		line = raw_input("Enter some text: ")
+		print "Processing:", line.strip()
 		sentence = nltk.word_tokenize(line.strip())
-		fingerprints = generate_fingerprints(sentence)
-		for fp in fingerprints:
+		fingerprints = generate_fingerprints(generator, sentence)
+		print "Generated", len(fingerprints), "fingerprints"
+		print "Submitting to HTM..."
+		for (word, pos, fp) in fingerprints:
 			tp_trainer.run(fp)
 
 		#sentence_generator = new_sentence_generator()  # TODO could provide context to constructor
@@ -97,6 +102,8 @@ if __name__ == '__main__':
 'bash.n.02|do.n.02|doctor_of_osteopathy.n.01|make.v.01|perform.v.01|do.v.03|do.v.04|cause.v.01|practice.v.01|suffice.v.01|do.v.08|act.v.02|serve.v.09|do.v.11|dress.v.16|do.v.13',
 'well.r.01|well.r.02|well.r.03|well.r.04|well.r.05|well.r.06|well.r.07|well.r.08|well.r.09|well.r.10|well.r.11|well.r.12|well.r.13'
 ]
+		print "Generating sentence..."
+		output_sentence = list()
 		for fragment in sentence_generator:
 			lemma_sdrs = tp_trainer.predicted_lemmas
 			lemma_names = fragment.split('|')
@@ -110,13 +117,18 @@ if __name__ == '__main__':
 				htm_fingerprints = [l.fp for l in lemma_sdrs]
 
 				# find the 10 best overlapping lemmas with the terminal lemma from the grammar
-				_, indexes = find_matching(grammar_fp, htm_fingerprints, sys.maxsize, 1)
+				_, indexes = find_matching(grammar_fp, htm_fingerprints, 1, 1)
+				if len(indexes) == 0:
+					output_sentence.append("uh never mind")
+					break
 				lemma_sdr = lemma_sdrs[indexes[0]]
 				wordnet_lemma = wn.lemma(lemma_sdr.lemma)
 				output_sentence.append(wordnet_lemma.name())
 				tp_trainer.run(lemma_sdr.fp)
 			else:
 				output_sentence.append(fragment)
+
+		print ' '.join(output_sentence)
 
 
 

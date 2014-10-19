@@ -26,7 +26,7 @@ def get_wordnet_pos(treebank_tag):
 		return ''
 
 
-def generate_fingerprints(sent):
+def generate_fingerprints(generator, sent):
 	fps = list()
 	pos_tagged_sent = nltk.pos_tag(sent)
 	# determine if word is 'n' (noun), 'v' (verb), 'r' (adverb), 'a' (adjective)
@@ -49,10 +49,10 @@ if __name__ == "__main__":
 
 	input_sents = gutenberg.sents(input_file)
 
-	with open("test_sentences.txt", "a") as f:
+	with open("sentences.txt", "a") as f:
 		generator = wordnet_fp.WordFingerprintGenerator("fingerprints.txt")
 		for sent in input_sents:
 			# [(<word>, <pos>, <fp>), ...]
-			sentence_fingerprints = generate_fingerprints(sent)
+			sentence_fingerprints = generate_fingerprints(generator, sent)
 			for (word, pos, fp) in sentence_fingerprints:
 				f.write(word + ":" + pos + ":" + str(sorted(list(fp))) + "\n")
