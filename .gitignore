@@ -5,3 +5,4 @@ runs.out
 *.txt
 *.pyc
 junk*
+*.p
