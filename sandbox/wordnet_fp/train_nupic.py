@@ -8,6 +8,7 @@ from __future__ import division
 import pickle
 import numpy as np
 from random import randrange, random, shuffle
+import os.path
 
 #from nupic.research.spatial_pooler import SpatialPooler as SP
 from nupic.bindings.algorithms import SpatialPooler as SP
@@ -78,8 +79,11 @@ class SPTrainer():
 			     potentialRadius = 512,
 			     numActiveColumnsPerInhArea = int(0.02*self.num_columns),
 			     globalInhibition = True,
-			     synPermActiveInc = 0.01,
-			     spVerbosity = 1
+			     synPermActiveInc = 0.0, # default 0.01
+			     synPermInactiveDec = 0.0, # default 0.01
+			     spVerbosity = 1,
+			     maxBoost = 1.0,    # down from 10
+			     potentialPct = 0.8 # up from .5
 			     )
 
     
@@ -88,9 +92,7 @@ class SPTrainer():
 
 		#clear the input_array to zero before creating a new input vector
 		self.input_array[0:] = 0
-
-		for i in fp:
-		  self.input_array[i] = 1
+		self.input_array[fp] = 1
 
 		#active_array[column]=1 if column is active after spatial pooling
 		self.sp.compute(self.input_array, True, self.active_array)
@@ -130,7 +132,11 @@ def process_fingerprints(filename, process):
 
 if __name__ == "__main__":
 	print "instantiate spatial pooler"
-	trainer = SPTrainer(4096)
+	if os.path.exists("spatial_pooler.p"):
+		with open("spatial_pooler.p", "r") as f:
+			trainer = pickle.load(f)
+	else:
+		trainer = SPTrainer(4096)
 
 	round = 0
 	percent_prediction = 0
