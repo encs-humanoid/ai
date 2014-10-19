@@ -6,7 +6,8 @@
 
 import numpy as np
 from random import randrange, random
-from nupic.research.spatial_pooler import SpatialPooler as SP
+#from nupic.research.spatial_pooler import SpatialPooler as SP
+from nupic.bindings.algorithms import SpatialPooler as SP
 
 
 class LemmaSDR():
@@ -69,7 +70,8 @@ class SPTrainer():
 			     potentialRadius = 512,
 			     numActiveColumnsPerInhArea = int(0.02*self.num_columns),
 			     globalInhibition = True,
-			     synPermActiveInc = 0.01
+			     synPermActiveInc = 0.01,
+			     spVerbosity = 1
 			     )
 
     
@@ -102,17 +104,17 @@ def process_fingerprints(filename, process):
     
 
 if __name__ == "__main__":
-	# the length of the fingerprint can be determined by `wc -l vocab_lemmas.txt`
 	print "instantiate spatial pooler"
-	trainer = SPTrainer(61955)
+	trainer = SPTrainer(4096)
 
-	for i in xrange(10):
+	for i in xrange(100):
+		print "==================================================="
 		print "round", i
 		process_fingerprints("train_lemmas.txt",
 			lambda lemma, fp:
 				trainer.run(lemma, fp))
 
-	for lemma in trainer.lemma_to_sdr.keys():
-		lemmaSDR = trainer.lemma_to_sdr[lemma]
-		print lemma, lemmaSDR.sdrs[lemmaSDR.last_sdr_key]
+		for lemma in trainer.lemma_to_sdr.keys():
+			lemmaSDR = trainer.lemma_to_sdr[lemma]
+			print lemma, lemmaSDR.sdrs[lemmaSDR.last_sdr_key]
 
