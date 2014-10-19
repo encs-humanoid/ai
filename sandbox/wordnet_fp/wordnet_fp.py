@@ -54,7 +54,7 @@ class WordFingerprintGenerator():
 	def get_word_fp(self, word, part_of_speech):
 		fp = set()
 		for synset in wn.synsets(word):
-			if synset.pos() == part_of_speech:
+			if synset.pos() == part_of_speech or (part_of_speech == 'a' and synset.pos() == 's'):
 				for lemma in synset.lemmas():
 					fp.update(self.get_lemma_fp(synset.name() + "." + lemma.name()))
 		return fp

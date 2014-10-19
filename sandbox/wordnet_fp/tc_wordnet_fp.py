@@ -57,6 +57,11 @@ class WordnetFingerprintTest(unittest.TestCase):
 		self.assertEqual(wordnet_fp.overlap(word_fp, lemma_fp2), len(lemma_fp2), "word fingerprint contains lemma 2 fingerprint")
 		self.assertEqual(wordnet_fp.overlap(word_fp, lemma_fp3), len(lemma_fp3), "word fingerprint contains lemma 3 fingerprint")
 		self.assertEqual(wordnet_fp.overlap(word_fp, lemma_fp4), len(lemma_fp4), "word fingerprint contains lemma 4 fingerprint")
+
+		# case where POS='a' but lemma has 's' (satellite adjective)
+		word_fp = generator.get_word_fp("ideal", "a")
+		lemma_fp = generator.get_lemma_fp("ideal.s.02.ideal")
+		self.assertEqual(wordnet_fp.overlap(word_fp, lemma_fp), len(lemma_fp), "word fingerprint contains lemma fingerprint")
 		
 
 if __name__ == "__main__":
