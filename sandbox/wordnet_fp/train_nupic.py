@@ -5,13 +5,17 @@
 #===================================================================
 from __future__ import division
 
-import pickle
-import numpy as np
-from random import randrange, random, shuffle
 import os.path
+import pickle
+from random import randrange, random, shuffle
+import sys
+import time
+
+import numpy as np
 
 #from nupic.research.spatial_pooler import SpatialPooler as SP
 from nupic.bindings.algorithms import SpatialPooler as SP
+from nupic.research.TP10X2 import TP10X2 as TP
 
 class LemmaSDR():
 	"""
@@ -66,11 +70,11 @@ class SPTrainer():
 		"""
 		 Parameters:
 		 ----------
-		 _fpLength	:	The length of a fingerprint.
+		 fp_length	:	The length of a fingerprint.
 		 """
 		self.fp_length = fp_length
 		self.num_columns = 2048
-		self.input_array = np.zeros(self.fp_length)
+		self.input_array = np.zeros(self.fp_length, dtype="int32")
 		self.active_array = np.zeros(self.num_columns)
 		self.lemma_to_sdr = dict()
 
@@ -92,7 +96,7 @@ class SPTrainer():
 
 		#clear the input_array to zero before creating a new input vector
 		self.input_array[0:] = 0
-		self.input_array[fp] = 1
+		self.input_array[list(fp)] = 1
 
 		#active_array[column]=1 if column is active after spatial pooling
 		self.sp.compute(self.input_array, True, self.active_array)
@@ -102,6 +106,46 @@ class SPTrainer():
 		if not self.lemma_to_sdr.has_key(lemma):
 			self.lemma_to_sdr[lemma] = LemmaSDR(lemma, fp)
 		self.lemma_to_sdr[lemma].set_sdr(sdr)
+
+
+class TPTrainer():
+  
+	"""Trainer for the temporal pooler.
+	Takes word fingerprints from an input file and feeds them to the
+	temporal pooler by first getting the SDR from the spatial pooler
+	and then passing that to the temporal pooler.
+	"""
+
+	def __init__(self, sp_trainer):
+		"""
+		Parameters:
+		----------
+		sp_trainer	:	The spatial pooler trainer
+		"""
+		self.sp_trainer = sp_trainer
+		self.input_array = np.zeros(self.sp_trainer.fp_length)
+		self.active_array = np.zeros(self.sp_trainer.num_columns)
+
+		self.tp = TP(numberOfCols=self.sp_trainer.num_columns, cellsPerColumn=2,
+			    initialPerm=0.5, connectedPerm=0.5,
+			    minThreshold=10, newSynapseCount=10,
+			    permanenceInc=0.1, permanenceDec=0.0,
+			    activationThreshold=5,
+			    globalDecay=0, burnIn=1,
+			    checkSynapseConsistency=False,
+			    pamLength=10)
+
+    
+	def run(self, fp):
+		"""Run the spatial pooler and temporal pooler with the input fingerprint"""
+
+		# clear the input_array to zero before creating a new input vector
+		self.input_array[0:] = 0
+		self.input_array[list(fp)] = 1
+
+		# active_array[column] = 1 if column is active after spatial pooling
+		self.sp_trainer.sp.compute(self.input_array, False, self.active_array)
+		self.tp.compute(self.active_array, enableLearn = True, computeInfOutput = False)
 
 
 def process_fingerprints(filename, process):
@@ -116,12 +160,13 @@ def process_fingerprints(filename, process):
 		return N
     
 
-if __name__ == "__main__":
-	print "instantiate spatial pooler"
+def train_spatial_pooler():
 	if os.path.exists("spatial_pooler.p"):
+		print "load previously saved spatial pooler"
 		with open("spatial_pooler.p", "r") as f:
 			trainer = pickle.load(f)
 	else:
+		print "instantiate new spatial pooler"
 		trainer = SPTrainer(4096)
 
 	round = 0
@@ -145,4 +190,66 @@ if __name__ == "__main__":
 
 	with open("spatial_pooler.p", "w") as f:
 		pickle.dump(trainer, f)
+
+def train_temporal_pooler():
+	if os.path.exists("spatial_pooler.p"):
+		print "load previously saved spatial pooler"
+		with open("spatial_pooler.p", "r") as f:
+			sp_trainer = pickle.load(f)
+	else:
+		print "A previously saved spatial pooler is required to train the temporal pooler"
+		sys.exist(1)
+
+	# Load or instantiate temporal pooler
+	if os.path.exists("temporal_pooler.p"):
+		print "load previously saved temporal pooler"
+		with open("temporal_pooler.p", "r") as f:
+			tp_trainer = pickle.load(f)
+		tp_trainer.sp_trainer = sp_trainer	# link the spatial and temporal poolers
+	else:
+		tp_trainer = TPTrainer(sp_trainer)
+
+	# Train on sentences
+	round = 0
+	while round < 10:
+		print "==================================================="
+		round += 1
+		print "round", round
+		with open("train_sentences.txt", "r") as f:
+			N = 0
+			start_time = time.time()
+			for line in f:
+				# expecting line in the format <word>:<pos>:<fp>
+				values = line.strip().split(":")
+				fp = set(eval(values[2]))
+				tp_trainer.run(fp)
+				N += 1
+				if N % 100 == 0:
+					rate = (time.time() - start_time) / N
+					print "Processed", N, "Rate", rate, "per sec"
+
+				# TODO send reset if anomaly score exceeds a threshold
+
+	# Write out trained temporal pooler
+	with open("temporal_pooler.p", "w") as f:
+		tp_trainer.sp_trainer = None	# don't duplicate the SP inside the TP; keep in separate files
+		pickle.dump(tp_trainer, f)
+
+
+if __name__ == "__main__":
+	if len(sys.argv) != 2:
+		print "Usage: " + sys.argv[0] + " sp|tp"
+		print "\tsp\ttrain spatial pooler"
+		print "\ttp\ttrain temporal pooler"
+		sys.exit(1)
+
+	command = sys.argv[1]
+
+	if "sp" == command:
+		train_spatial_pooler()
+	elif "tp" == command:
+		train_temporal_pooler()
+	else:
+		print "Unrecognised command:", command
+		sys.exit(1)
 
