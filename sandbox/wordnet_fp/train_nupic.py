@@ -224,8 +224,8 @@ def train_temporal_pooler():
 				fp = set(eval(values[2]))
 				tp_trainer.run(fp)
 				N += 1
-				if N % 100 == 0:
-					rate = (time.time() - start_time) / N
+				if N % 1000 == 0:
+					rate = N / (time.time() - start_time)
 					print "Processed", N, "Rate", rate, "per sec"
 
 				# TODO send reset if anomaly score exceeds a threshold
