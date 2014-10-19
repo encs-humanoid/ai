@@ -11,11 +11,18 @@
 from __future__ import division
 from nltk.corpus import wordnet as wn
 from nltk.corpus import gutenberg
+import sys
 
-md_words = set(gutenberg.words('melville-moby_dick.txt'))
+if len(sys.argv) != 2:
+	print "Usage: " + sys.argv[0] + " <filename>"
+	sys.exit(0)
+
+input_file = sys.argv[1]
+
+input_words = set(gutenberg.words(input_file))
 lemma_names = set(wn.all_lemma_names())
 # keep all Moby Dick words that are also found in wordnet
-vocab = md_words & lemma_names
+vocab = input_words & lemma_names
 
 lemmas = set()
 for lemma_name in vocab:
