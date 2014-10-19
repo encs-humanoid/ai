@@ -50,5 +50,20 @@ class WordnetFingerprintGenerator:
 
 		return self.lemma_bits[lemma]
 
+if __name__ == "__main__":
+	generator = WordnetFingerprintGenerator(bits_per_lemma=5, fp_length=4096)
+
+	lemmas_list = list()
+	with open('vocab_lemmas.txt', 'r') as f:
+		for line in f:
+			lemmas_list.append(line.strip())
+
+	with open('fingerprints.txt', 'w') as f:
+		i = 0
+		for lemma in lemmas_list:
+			print i, lemma
+			i += 1
+			fp = generator.get_fingerprint(lemma)
+			f.write(lemma + ":" + str(sorted(fp)) + "\n")
 
 

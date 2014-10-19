@@ -42,20 +42,24 @@ if __name__ == "__main__":
 		for i in lemma.fp:
 			bit_counts[i] += 1
 
-	bit_count_order = np.argsort(bit_counts)
-	for i in xrange(N):
+	fp_lengths = [len(lemma.fp) for lemma in lemma_sdrs]
+
+	length_order = np.argsort(fp_lengths)
+	for i in xrange(len(lemma_sdrs)):
 	    #print_max(bit_count_order[-(i+1)])
-	    print_max(bit_count_order[i])
-	top_bits = set(bit_count_order[-5000:])
+	    #print_max(bit_count_order[i])
+	    print "fpbits=", fp_lengths[length_order[i]], "lemma=", lemma_sdrs[length_order[i]].lemma
+
+#	top_bits = set(bit_count_order[-5000:])
 
 	# find lemmas with no bit set in the top_bits
-	no_top_bit = list()
-	for lemma in lemma_sdrs:
-		if has_top_bit(lemma):
-			continue
-		no_top_bit.append(lemma)
-
-	print "no_top_bit=", len(no_top_bit)
+#	no_top_bit = list()
+#	for lemma in lemma_sdrs:
+#		if has_top_bit(lemma):
+#			continue
+#		no_top_bit.append(lemma)
+#
+#	print "no_top_bit=", len(no_top_bit)
 
 	# calculate dp_i for each bit i
 	#	dp_i = 1 - 4 * (S_i/N - 1/2)^2
