@@ -8,3 +8,4 @@ head -1000 vocab_lemmas.txt > train_lemmas.txt
 date >> runs.out
 time unbuffer python train_nupic.py >> runs.out
 python test_nupic.py
+python gen_sentences.py melville-moby_dick.txt
