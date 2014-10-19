@@ -75,7 +75,7 @@ class SPTrainer():
 		self.fp_length = fp_length
 		self.num_columns = 2048
 		self.input_array = np.zeros(self.fp_length, dtype="int32")
-		self.active_array = np.zeros(self.num_columns)
+		self.active_array = np.zeros(self.num_columns, dtype="int32")
 		self.lemma_to_sdr = dict()
 
 		self.sp = SP((self.fp_length, 1), 
@@ -123,8 +123,8 @@ class TPTrainer():
 		sp_trainer	:	The spatial pooler trainer
 		"""
 		self.sp_trainer = sp_trainer
-		self.input_array = np.zeros(self.sp_trainer.fp_length)
-		self.active_array = np.zeros(self.sp_trainer.num_columns)
+		self.input_array = np.zeros(self.sp_trainer.fp_length, dtype="int32")
+		self.active_array = np.zeros(self.sp_trainer.num_columns, dtype="int32")
 
 		self.tp = TP(numberOfCols=self.sp_trainer.num_columns, cellsPerColumn=2,
 			    initialPerm=0.5, connectedPerm=0.5,
