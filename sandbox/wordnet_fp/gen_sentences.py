@@ -26,6 +26,20 @@ def get_wordnet_pos(treebank_tag):
 		return ''
 
 
+def generate_fingerprints(sent):
+	fps = list()
+	pos_tagged_sent = nltk.pos_tag(sent)
+	# determine if word is 'n' (noun), 'v' (verb), 'r' (adverb), 'a' (adjective)
+	for pos_tagged_word in pos_tagged_sent:
+		word = pos_tagged_word[0]
+		pos = get_wordnet_pos(pos_tagged_word[1])
+		if len(pos) > 0:
+			fp = generator.get_word_fp(word, pos)
+			if len(fp) > 0:
+				fps.append((word, pos, fp))
+	return fps
+
+
 if __name__ == "__main__":
 	if len(sys.argv) != 2:
 		print "Usage: " + sys.argv[0] + " <filename>"
@@ -35,15 +49,10 @@ if __name__ == "__main__":
 
 	input_sents = gutenberg.sents(input_file)
 
-	with open("sentences.txt", "a") as f:
+	with open("test_sentences.txt", "a") as f:
 		generator = wordnet_fp.WordFingerprintGenerator("fingerprints.txt")
 		for sent in input_sents:
-			pos_tagged_sent = nltk.pos_tag(sent)
-			# determine if word is 'n' (noun), 'v' (verb), 'r' (adverb), 'a' (adjective)
-			for pos_tagged_word in pos_tagged_sent:
-				word = pos_tagged_word[0]
-				pos = get_wordnet_pos(pos_tagged_word[1])
-				if len(pos) > 0:
-					fp = generator.get_word_fp(word, pos)
-					if len(fp) > 0:
-						f.write(word + ":" + pos + ":" + str(sorted(list(fp))) + "\n")
+			# [(<word>, <pos>, <fp>), ...]
+			sentence_fingerprints = generate_fingerprints(sent)
+			for (word, pos, fp) in sentence_fingerprints:
+				f.write(word + ":" + pos + ":" + str(sorted(list(fp))) + "\n")

@@ -125,6 +125,8 @@ class TPTrainer():
 		self.sp_trainer = sp_trainer
 		self.input_array = np.zeros(self.sp_trainer.fp_length, dtype="int32")
 		self.active_array = np.zeros(self.sp_trainer.num_columns, dtype="int32")
+		self.is_learning = True
+		self.compute_inference = False
 
 		self.tp = TP(numberOfCols=self.sp_trainer.num_columns, cellsPerColumn=2,
 			    initialPerm=0.5, connectedPerm=0.5,
@@ -145,8 +147,14 @@ class TPTrainer():
 
 		# active_array[column] = 1 if column is active after spatial pooling
 		self.sp_trainer.sp.compute(self.input_array, False, self.active_array)
-		self.tp.compute(self.active_array, enableLearn = True, computeInfOutput = False)
+		self.tp.compute(self.active_array, enableLearn = self.is_learning, computeInfOutput = self.compute_inference)
 
+		if self.compute_inference:
+			self.predicted_sdr = tp.getPredictedState().max(axis=1).nonzero()
+			lemma_sdrs = np.array([l for l in self.sp_trainer.lemma_to_sdr.values()])
+			all_lemma_sdrs = [l.sdrs[l.last_sdr_key] for l in lemma_sdrs]
+			_, indexes = find_matching(self.predicted_sdr, all_lemma_sdrs, sys.maxsize, 10)
+			self.predicted_lemmas = lemma_sdrs[indexes]
 
 def process_fingerprints(filename, process):
 	with open(filename, "r") as f:
@@ -191,7 +199,8 @@ def train_spatial_pooler():
 	with open("spatial_pooler.p", "w") as f:
 		pickle.dump(trainer, f)
 
-def train_temporal_pooler():
+
+def load_htm():
 	if os.path.exists("spatial_pooler.p"):
 		print "load previously saved spatial pooler"
 		with open("spatial_pooler.p", "r") as f:
@@ -208,6 +217,12 @@ def train_temporal_pooler():
 		tp_trainer.sp_trainer = sp_trainer	# link the spatial and temporal poolers
 	else:
 		tp_trainer = TPTrainer(sp_trainer)
+
+	return sp_trainer, tp_trainer
+
+
+def train_temporal_pooler():
+	sp_trainer, tp_trainer = load_htm()
 
 	# Train on sentences
 	round = 0
