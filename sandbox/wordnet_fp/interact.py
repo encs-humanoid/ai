@@ -97,17 +97,31 @@ if __name__ == '__main__':
 
 		#sentence_generator = new_sentence_generator()  # TODO could provide context to constructor
 		sentence_generator = ['the',
-'good.n.01|good.n.02|good.n.03|commodity.n.01|good.a.01|full.s.06|good.a.03|estimable.s.02|beneficial.s.01|good.s.06|good.s.07|adept.s.01|good.s.09|dear.s.02|dependable.s.04|good.s.12|good.s.13|effective.s.04|good.s.15|good.s.16|good.s.17|good.s.18|good.s.19|good.s.20|good.s.21',
-'person.n.01.somebody',
-'bash.n.02|do.n.02|doctor_of_osteopathy.n.01|make.v.01|perform.v.01|do.v.03|do.v.04|cause.v.01|practice.v.01|suffice.v.01|do.v.08|act.v.02|serve.v.09|do.v.11|dress.v.16|do.v.13',
-'well.r.01|well.r.02|well.r.03|well.r.04|well.r.05|well.r.06|well.r.07|well.r.08|well.r.09|well.r.10|well.r.11|well.r.12|well.r.13'
+'synset:good.n.01|good.n.02|good.n.03|commodity.n.01|good.a.01|full.s.06|good.a.03|estimable.s.02|beneficial.s.01|good.s.06|good.s.07|adept.s.01|good.s.09|dear.s.02|dependable.s.04|good.s.12|good.s.13|effective.s.04|good.s.15|good.s.16|good.s.17|good.s.18|good.s.19|good.s.20|good.s.21',
+'lemma:person.n.01.somebody',
+'synset:make.v.01|perform.v.01|do.v.03|do.v.04|cause.v.01|practice.v.01|suffice.v.01|do.v.08|act.v.02|serve.v.09|do.v.11|dress.v.16|do.v.13',
+'synset:well.r.01|well.r.02|well.r.03|well.r.04|well.r.05|well.r.06|well.r.07|well.r.08|well.r.09|well.r.10|well.r.11|well.r.12|well.r.13'
 ]
 		print "Generating sentence..."
 		output_sentence = list()
 		for fragment in sentence_generator:
 			lemma_sdrs = tp_trainer.predicted_lemmas
-			lemma_names = fragment.split('|')
-			if tp_trainer.sp_trainer.lemma_to_sdr.has_key(lemma_names[0]):
+			if len(lemma_sdrs) == 0:
+				output_sentence.append("uh")
+			elif fragment.startswith("synset:") or fragment.startswith("lemma:"):
+				lemma_names = list()
+				if fragment.startswith("synset:"):
+					fragment = fragment[fragment.index(":") + 1:]
+					synset_names = fragment.split('|')
+					for synset_name in synset_names:
+						synset = wn.synset(synset_name)
+						for lemma in synset.lemmas():
+							if lemma.name().find('.') < 0:
+								lemma_names.append(synset.name() + "." + lemma.name())
+				else:
+					fragment = fragment[fragment.index(":") + 1:]
+					for lemma_name in fragment.split("|"):
+						lemma_names.append(lemma_name)
 				grammar_fp = set()
 				for lemma_name in lemma_names:
 					if tp_trainer.sp_trainer.lemma_to_sdr.has_key(lemma_name):
@@ -115,6 +129,11 @@ if __name__ == '__main__':
 						grammar_fp.update(terminal_lemma.fp)
 
 				htm_fingerprints = [l.fp for l in lemma_sdrs]
+				with open('junk.txt', 'a') as f:
+					f.write("grammar_fp\n")
+					f.write(str(grammar_fp) + "\n")
+					f.write("htm_fingerprints\n")
+					f.write(str(htm_fingerprints) + "\n")
 
 				# find the 10 best overlapping lemmas with the terminal lemma from the grammar
 				_, indexes = find_matching(grammar_fp, htm_fingerprints, 1, 1)

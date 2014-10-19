@@ -153,13 +153,11 @@ class TPTrainer():
 
 		if self.compute_inference:
 			self.predicted_sdr = set(self.tp.getPredictedState().max(axis=1).nonzero()[0].flat)
-			print self.predicted_sdr
 			lemma_sdrs = np.array([l for l in self.sp_trainer.lemma_to_sdr.values()])
 			# convert string key to list by stripping front and end:
 			# Example: (array([   8,   12, ... , 1018]),)
 			all_lemma_sdrs = [set(eval(l.last_sdr_key[7:-3])) for l in lemma_sdrs]
 			_, indexes = wordnet_fp.find_matching(self.predicted_sdr, all_lemma_sdrs, 1, 10)
-			print "matching indexes=", indexes
 			self.predicted_lemmas = lemma_sdrs[indexes]
 
 def process_fingerprints(filename, process):
@@ -220,6 +218,7 @@ def load_htm():
 		print "load previously saved temporal pooler"
 		with open("temporal_pooler.p", "r") as f:
 			tp_trainer = pickle.load(f)
+		tp_trainer.tp.loadFromFile("temporal_pooler.tp")
 		tp_trainer.sp_trainer = sp_trainer	# link the spatial and temporal poolers
 	else:
 		tp_trainer = TPTrainer(sp_trainer)
@@ -252,9 +251,11 @@ def train_temporal_pooler():
 				# TODO send reset if anomaly score exceeds a threshold
 
 	# Write out trained temporal pooler
+	tp_trainer.tp.saveToFile("temporal_pooler.tp")
 	with open("temporal_pooler.p", "w") as f:
 		tp_trainer.sp_trainer = None	# don't duplicate the SP inside the TP; keep in separate files
 		pickle.dump(tp_trainer, f)
+	
 
 
 if __name__ == "__main__":
