@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 #===================================================================
 # For NLTK Chat, pairings of input patterns with possible responses.
-# This version of pairings comes from the Eliza chatbot code found
-# at http://www.nltk.org/_modules/nltk/chat/eliza.html#eliza_chat,
+# We'll flesh these out over time...
 # Copyright (C) 2001-2014 NLTK Project
 #===================================================================
 
