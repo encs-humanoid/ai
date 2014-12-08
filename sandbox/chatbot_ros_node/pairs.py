@@ -20,7 +20,7 @@ pairs = (
 
   (r'robot',
   ( "Yes, let's talk about robots. I like robots. What about you?",
-    "Ahh, robots are one of my favorite topics."))
+    "Ahh, robots are one of my favorite topics.")),
 
   (r'I am (.*)',
   ( "Hello %1. I am glad to meet you!",
