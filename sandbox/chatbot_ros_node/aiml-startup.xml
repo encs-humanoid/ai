@@ -6,7 +6,7 @@
 <template>
 
 <!-- Load standard AIML set -->
-<learn>/home/vagrant/pyaiml/standard/std-*.aiml</learn>
+<learn>pyaiml/standard/std-*.aiml</learn>
 </template>
 </category>
 
