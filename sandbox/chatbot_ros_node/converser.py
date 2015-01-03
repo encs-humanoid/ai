@@ -17,9 +17,9 @@ from pairs import *
 
 class Converser(object):
     def __init__(self):
-        rospy.init_node('converser')
-        self.pub = rospy.Publisher('speech_text', String, self.callback)
+        self.pub = rospy.Publisher('speech_text', String)
         rospy.Subscriber('heard_text', String, self.callback)
+        rospy.init_node('converser')
         self.bot = Chat(pairs, reflections)
 
     def callback(self,msg):
