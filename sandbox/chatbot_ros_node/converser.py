@@ -6,21 +6,25 @@
 # In a working robot, a hearing node will supply text heard from a
 # human, while a speech node will do text-to-speech conversion of
 # the speech_text strings.
+#
+# This version experiments with AIML instead of NLTK.
+#
 # Copyright 2014, IEEE ENCS Humanoid Robot Project
 #===================================================================
 
 from __future__ import print_function
 import rospy
 from std_msgs.msg import String
-from nltk.chat.util import Chat, reflections
-from pairs import *
+import aiml
 
 class Converser(object):
     def __init__(self):
         self.pub = rospy.Publisher('speech_text', String)
         rospy.Subscriber('heard_text', String, self.callback)
         rospy.init_node('converser')
-        self.bot = Chat(pairs, reflections)
+        self.bot = aiml.Kernel()
+        self.bot.learn("aiml-startup.xml")
+        self.bot.respond("load aiml b")
 
     def callback(self,msg):
         rospy.loginfo(rospy.get_caller_id() + ": I heard: %s", msg.data)
