@@ -17,6 +17,14 @@ import rospy
 from std_msgs.msg import String
 import aiml
 
+botAttributes = {
+    "name":           "Ken",
+    "master":         "the IEEE ENCS Humanoid Robot Team",
+    "gender":         "male",
+    "location":       "Daniel's place", # change me often
+    "birthplace":     "Raleigh, North Carolina",
+}
+
 class Converser(object):
     def __init__(self):
         self.pub = rospy.Publisher('speech_text', String)
@@ -25,6 +33,8 @@ class Converser(object):
         self.bot = aiml.Kernel()
         self.bot.learn("aiml-startup.xml")
         self.bot.respond("load aiml b")
+        for key, value in botAttributes.iteritems():
+            self.bot.setBotPredicate(key, value)
 
     def callback(self,msg):
         rospy.loginfo(rospy.get_caller_id() + ": I heard: %s", msg.data)
