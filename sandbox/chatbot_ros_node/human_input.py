@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 #===================================================================
-# Run this program to send typed messages to the heard_text topic,
-# to which the robot A.I. will be listening. Later this program
-# can be replaced by the hearing node from the Speech and Hearing
-# team.
+# Run this program to send typed messages to the recognized_speech
+# topic, to which the robot A.I. will be listening. Later this
+# program can be replaced by the hearing node from the Speech and
+# Hearing team.
+#
 # Copyright 2014, IEEE ENCS Humanoid Robot Project
 #===================================================================
 

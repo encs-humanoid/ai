@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 #===================================================================
 # This program is a stand-in for a more complete A.I. ROS node.
-# It will subscribe to the heard_text topic, receive strings,
-# construct response text, and publish to the speech_text topic.
+# It will subscribe to the recognized_speech topic, receive strings,
+# construct response text, and publish to the say topic.
 # In a working robot, a hearing node will supply text heard from a
 # human, while a speech node will do text-to-speech conversion of
-# the speech_text strings.
+# the say messages.
 #
 # This version experiments with AIML instead of NLTK.
 #
