@@ -7,3 +7,5 @@ runs.out
 junk*
 *.p
 *.tp
+*~
+sandbox/chatbot_ros_node/pyaiml
