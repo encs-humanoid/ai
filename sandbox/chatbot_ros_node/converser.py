@@ -27,8 +27,8 @@ botAttributes = {
 
 class Converser(object):
     def __init__(self):
-        self.pub = rospy.Publisher('speech_text', String)
-        rospy.Subscriber('heard_text', String, self.callback)
+        self.pub = rospy.Publisher('say', String)
+        rospy.Subscriber('recognized_speech', String, self.callback)
         rospy.init_node('converser')
         self.bot = aiml.Kernel()
         self.bot.learn("aiml-startup.xml")
