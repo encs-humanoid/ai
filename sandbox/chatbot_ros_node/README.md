@@ -18,7 +18,7 @@ You should see messages emitted, including "started core service".
 Open another terminal, cd to the sandbox/chatbot_ros_node directory and run:
 
 ```sh
-./converser.py
+./ai_respond_node.py
 ```
 
 This starts up the ROS node that acts as the robot's A.I.
