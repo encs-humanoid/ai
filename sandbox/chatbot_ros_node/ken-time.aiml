@@ -1,0 +1,19 @@
+<aiml>
+
+<category>
+<pattern>WHAT TIME IS IT</pattern>
+<template>
+<system>
+/bin/date +"the time is %_I %M %p"
+</system>
+</template>
+</category>
+
+<category>
+<pattern>DO YOU KNOW THE TIME</pattern>
+<template>
+<srai>WHAT TIME IS IT</srai>
+</template>
+</category>
+
+</aiml>
