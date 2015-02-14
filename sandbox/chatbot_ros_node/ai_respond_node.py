@@ -5,7 +5,6 @@
 # Subscribes To:
 # - recognized_speech
 # - recognized_face
-# - boot (to exit on "stop" messages)
 #
 # Publishes To:
 # - say
@@ -17,9 +16,9 @@
 #    pairings to an in-memory knowledge base.
 # 3) If a new face is recognized, the node will generate
 #    a greeting and attempt to get the person's name.
-# 4) If the boot node sends a stop message, this node will save
-#    the currently loaded knowledge base back to a file for later
-#    reuse.
+# 4) On receiving a kill signal, the node will save
+#    the currently loaded knowledge base back to a file
+#    for later reuse.
 #
 # AIML is used for the basic chat functionality.
 #
@@ -33,6 +32,7 @@ import pickle
 import rospy
 from std_msgs.msg import String
 import aiml
+import atexit
 
 kb_file = "kb.p"      # default name for the knowledge base
 
@@ -40,7 +40,7 @@ botAttributes = {
     "name":           "Ken",
     "master":         "the IEEE ENCS Humanoid Robot Team",
     "gender":         "male",
-    "location":       "Daniel's place", # change me often
+    "location":       "Touchstone 3D, Cary, North Carolina", # fetch this info from internet later
     "birthplace":     "Raleigh, North Carolina",
 }
 
@@ -60,7 +60,6 @@ class AIRespondNode(object):
         self.pub = rospy.Publisher('say', String)
         rospy.Subscriber('recognized_speech', String, self.on_recognized_speech)
         rospy.Subscriber('recognized_face', String, self.on_recognized_face)
-        rospy.Subscriber('boot', String, self.on_stop)
         rospy.init_node('ai_respond_node')
 
     def load_kb(self):
@@ -92,14 +91,12 @@ class AIRespondNode(object):
             self.pub.publish(utterance)
             rospy.loginfo(rospy.get_caller_id() + ": I said: %s", utterance)
 
-    def on_stop(self, msg):
-        if msg.data == "stop":
-            rospy.loginfo(rospy.get_caller_id() + ": I received a stop signal %s", msg.data)
-            rospy.loginfo(rospy.get_caller_id() + ": Writing KB to %s", kb_file)
-            self.kb = self.bot.getSessionData(self.session_id)
-            pickle.dump(self.kb, open( kb_file, "wb" ) )
-            rospy.loginfo(rospy.get_caller_id() + ": Exiting AI Respond Node")
-            os._exit(0)
+    def save_kb(self):
+        rospy.loginfo(rospy.get_caller_id() + ": I received a kill signal %s")
+        rospy.loginfo(rospy.get_caller_id() + ": Writing KB to %s", kb_file)
+        self.kb = self.bot.getSessionData(self.session_id)
+        pickle.dump(self.kb, open( kb_file, "wb" ) )
+        rospy.loginfo(rospy.get_caller_id() + ": Exiting AI Respond Node")
 
     def run(self):
         rospy.spin()
@@ -108,5 +105,7 @@ class AIRespondNode(object):
 if __name__ == "__main__":
     try:
         ai = AIRespondNode()
+
+        atexit.register(ai.save_kb)
         ai.run()
     except rospy.ROSInterruptException: pass
