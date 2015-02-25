@@ -1,0 +1,10 @@
+<aiml>
+
+<category>
+<pattern>RECOGNIZE *</pattern>
+<template>
+Hi there, <star/>, <srai>ASK USER A QUESTION</srai>
+</template>
+</category>
+
+</aiml>
