@@ -40,6 +40,7 @@ import rospy
 from std_msgs.msg import String
 import aiml
 import atexit
+import datetime
 
 kb_file = "kb.p"      # default name for the knowledge base
 
@@ -53,7 +54,7 @@ botAttributes = {
 
 class AIRespondNode(object):
     def __init__(self):
-    	global min_match
+    	global min_match, delta_xy_px, delta_t_ms, min_recent_face_time_ms
         rospy.init_node('ai_respond_node')
 
         self.bot = aiml.Kernel()
@@ -72,6 +73,9 @@ class AIRespondNode(object):
 	target_topic = self.get_param('~out_target', '/target_face')
 	self.max_target_hold_sec = float(self.get_param('~max_target_hold_sec', '15.0'))
 	min_match = int(self.get_param('~min_match', '4'))
+	delta_xy_px = int(self.get_param('~delta_xy_px', '20'))
+	delta_t_ms = int(self.get_param('~delta_t_ms', '1000'))
+	min_recent_face_time_ms = int(self.get_param('~min_recent_face_time_ms', '3000'))
 
         self.load_kb()
 
@@ -149,7 +153,7 @@ class AIRespondNode(object):
 	    rospy.loginfo('Adding new recognized face %s', str(recognized_face.encounter_ids))
 	    rospy.loginfo('Face count is %d', len(faces))
 	else:
-	    face.update(recognized_face)
+	    face.update(recognized_face.encounter_ids)
 
 	target_face, greeting = self.update_target_face(face)
 
@@ -159,7 +163,8 @@ class AIRespondNode(object):
 	    # if the target is different from the current converser's name
 	    if target_face.name != converser_name:
 	    	# update converser name to match target face name
-	    	self.setkb("name", target_face.name)
+		# set in ken-recognize.aiml rather than here
+	    	#self.setkb("name", target_face.name)
 		rospy.loginfo('Recognized face of %s', str(target_face.name))
 		# trigger response which includes converser's name
 		self.respond_to("recognize " + target_face.name)
@@ -189,7 +194,7 @@ class AIRespondNode(object):
 	    # set target face if not set
 	    target_face = self.set_target_face(face)
 	    greeting = True
-	elif target_face != face:  # recognized a different person than the target
+	elif target_face != face:  # recognized a different face than the target
 	    rospy.loginfo('Target %d, recognized %d: Face of %s, %s', target_face.id, face.id, face.name, str(face.encounter_ids))
 	    # get the time since the last match to the target face
 	    last_seen_time = self.getkb("target_face_timestamp_s")
@@ -200,7 +205,7 @@ class AIRespondNode(object):
 	    # current recognized face.
 	    r = random.random()
 	    p = (time_since_last / self.max_target_hold_sec)**2
-	    if random.random() < time_since_last / self.max_target_hold_sec:
+	    if r < p:
 		rospy.loginfo('Switching target face from %d: %s to %d: %s after %g seconds with %g probability', target_face.id, str(target_face.name), face.id, str(face.name), time_since_last, p)
 		if not face.name or target_face.name != face.name: # only greet if the name changes
 		    greeting = True
@@ -244,6 +249,25 @@ class AIRespondNode(object):
         rospy.spin()
 
 
+class Rect(object):
+    def __init__(self, x, y, w, h):
+    	self.x = x
+	self.y = y
+	self.w = w
+	self.h = h
+
+
+class RecentFace(object):
+    '''
+    Helper class to hold a recently recognized face along with its coordinates and timestamp.
+    '''
+    def __init__(self, face, recognized_face):
+    	self.face = face
+	self.stamp = recognized_face.header.stamp
+	self.frame_id = recognized_face.header.frame_id
+	self.rect = Rect(recognized_face.x, recognized_face.y, recognized_face.w, recognized_face.h)
+
+
 class Faces(object):
     '''
     Keep track of known faces and provide an interface for looking up recognized faces.
@@ -253,6 +277,8 @@ class Faces(object):
     '''
     def __init__(self):
 	self.faces = []
+	self.recent_faces = []
+	self.next_id = 0
 
 
     def __len__(self):
@@ -260,6 +286,42 @@ class Faces(object):
 
 
     def find(self, recognized_face):
+    	face = self.find_recent_face(recognized_face)
+	if not face:
+	    face = self.find_similar_face(recognized_face)
+	if face:
+	    self.recent_faces.append(RecentFace(face, recognized_face))
+	return face
+ 
+
+    def find_recent_face(self, recognized_face):
+    	global delta_xy_px, delta_t_ms, min_recent_face_time_ms
+	# construct a list of recent faces which are equivalent to the recognized face
+	# due to their proximity in space and time
+	faces = set()
+    	for f in self.recent_faces:
+	    delta_x = abs(f.rect.x - recognized_face.x)
+	    delta_y = abs(f.rect.y - recognized_face.y)
+	    delta_w = abs(f.rect.w - recognized_face.w)
+	    delta_h = abs(f.rect.h - recognized_face.h)
+	    delta_t = abs((f.stamp - recognized_face.header.stamp).to_sec() * 1000)
+	    if delta_x <= delta_xy_px and delta_y <= delta_xy_px and delta_w <= delta_xy_px and delta_h <= delta_xy_px and delta_t <= delta_t_ms:
+		print(recognized_face.header.frame_id, delta_x, delta_y, delta_w, delta_h, delta_t, f.face.id, f.face.name)
+	    	faces.add(f.face)
+	
+	# remove the original faces from the memory and
+	# add a single new face which combines the original faces
+	face = self.combine_faces(faces)
+
+	# purge faces which are too old to keep
+	#size = len(self.recent_faces)
+    	self.recent_faces = [f for f in self.recent_faces if abs((f.stamp - recognized_face.header.stamp).to_sec() * 1000) <= min_recent_face_time_ms]
+	#print("recent faces reduced from", size, "to", len(self.recent_faces))
+
+	return face
+
+
+    def find_similar_face(self, recognized_face):
 	global min_match
 	ids = set(recognized_face.encounter_ids)
 	top_overlap = min_match # init to min_match to exclude low matches
@@ -289,9 +351,34 @@ class Faces(object):
 
 
     def add(self, recognized_face):
-    	face = Face(len(self.faces))
-	face.update(recognized_face)
+    	face = Face(self.next_face_id())
+	face.update(recognized_face.encounter_ids)
 	self.faces.append(face)
+	return face
+
+
+    def next_face_id(self):
+    	next_id = self.next_id
+	self.next_id += 1
+	return next_id
+
+
+    def combine_faces(self, faces):
+    	faces = list(faces)  # convert set to list for easy indexing
+	rospy.loginfo('Combining faces %s', str([f.id for f in faces]))
+    	if len(faces) == 0:
+	    return None
+	if len(faces) == 1:
+	    return faces[0]
+	face = faces[0]  # TODO determine the 'best' face to keep from the list
+	for f in faces[1:]:
+	    # remove original face
+	    self.faces.remove(f)
+	    # add the encounter ids - do this one face at a time to 
+	    # rebuild a histogram of common ids
+	    face.update(f.encounter_ids)
+	    if face.name is None and f.name is not None:
+	    	face.name = f.name
 	return face
 
 
@@ -303,15 +390,29 @@ class Face(object):
 	self.name = None
 
 
-    def update(self, recognized_face):
-        for id in recognized_face.encounter_ids:
+    def update(self, encounter_ids):
+    	'''
+	Update the histogram of encounter ids for this face and reset
+	the encounter ids set to the values which most frequently appear.
+	'''
+	global min_match
+        for id in encounter_ids:
 	    if id not in self.encounter_id_hist:
 	    	self.encounter_id_hist[id] = 0
 	    self.encounter_id_hist[id] += 1
-	threshold = max([cnt for cnt in self.encounter_id_hist.values()]) / 2.0
-	for id in recognized_face.encounter_ids:
-	    if self.encounter_id_hist[id] >= threshold:
-		self.encounter_ids.add(id)
+
+	# loop to iteratively lower the threshold until we find at least min_match ids
+	for i in range(2, 8):
+	    # reinitialize encounter ids from the histogram
+	    threshold = max(self.encounter_id_hist.values()) / float(i) 
+	    self.encounter_ids = set([k for k,v in self.encounter_id_hist.items() if v >= threshold])
+	    # if we have enough ids, then break out of the loop
+	    if len(self.encounter_ids) >= min_match:
+		break
+
+	# if we still don't have min_match ids, just use all the ids we've collected so far
+	if len(self.encounter_ids) < min_match:
+	    self.encounter_ids = self.encounter_id_hist.keys()
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@
 <category>
 <pattern>RECOGNIZE *</pattern>
 <template>
+<think><set name="name"><star/></set></think>
 Hi there, <star/>, <srai>ASK USER A QUESTION</srai>
 </template>
 </category>
