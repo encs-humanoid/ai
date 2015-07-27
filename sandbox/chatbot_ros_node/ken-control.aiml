@@ -1,0 +1,17 @@
+<aiml>
+
+<category>
+<pattern>KEN STOP LISTENING</pattern>
+<template>
+I will stop listening now.
+</template>
+</category>
+
+<category>
+<pattern>KEN RESUME LISTENING</pattern>
+<template>
+I am listening now.
+</template>
+</category>
+
+</aiml>

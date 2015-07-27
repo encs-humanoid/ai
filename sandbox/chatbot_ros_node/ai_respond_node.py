@@ -299,6 +299,8 @@ class Faces(object):
 	# construct a list of recent faces which are equivalent to the recognized face
 	# due to their proximity in space and time
 	faces = set()
+	if not hasattr(self, 'recent_faces'):
+	    self.recent_faces = []
     	for f in self.recent_faces:
 	    delta_x = abs(f.rect.x - recognized_face.x)
 	    delta_y = abs(f.rect.y - recognized_face.y)
