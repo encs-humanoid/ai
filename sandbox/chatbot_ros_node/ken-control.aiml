@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <aiml>
 
 <category>
@@ -11,6 +12,170 @@ I will stop listening now.
 <pattern>KEN RESUME LISTENING</pattern>
 <template>
 I am listening now.
+</template>
+</category>
+
+<category>
+<pattern>STOP STARING</pattern>
+<template>
+I will stop staring now.
+<system>rostopic pub /control std_msgs/String -1 "stop_face_tracking" > /dev/null</system>
+<system>rostopic pub /joy sensor_msgs/Joy -1 "{header: {seq: 0,stamp: {secs: `date +%s`,nsecs: `date +%N`},frame_id: ''},axes: [0.0,0.0,0.0,0.0,0.0,0.0,0.0],buttons: [0,0,0,0,0,0,0,0,0,0,0,0]}" > /dev/null</system>
+</template>
+</category>
+
+<category>
+<pattern>RESUME STARING</pattern>
+<template>
+I am watching you.
+<system>rostopic pub /control std_msgs/String -1 "resume_face_tracking" > /dev/null</system>
+</template>
+</category>
+
+<category>
+<pattern>STOP RECOGNIZING</pattern>
+<template>
+I will stop recognizing faces now.
+<system>rostopic pub /control std_msgs/String -1 "stop_face_recognition" > /dev/null</system>
+</template>
+</category>
+
+<category>
+<pattern>RESUME RECOGNIZING</pattern>
+<template>
+I am trying to recognize you.
+<system>rostopic pub /control std_msgs/String -1 "resume_face_recognition" > /dev/null</system>
+</template>
+</category>
+
+<category>
+<pattern>CLOSE LEFT EYE</pattern>
+<template>
+My left eye is closed.
+<system>rosservice call /stereo/left/camera/stop_capture > /dev/null</system>
+</template>
+</category>
+
+<category>
+<pattern>CLOSE RIGHT EYE</pattern>
+<template>
+My right eye is closed.
+<system>rosservice call /stereo/right/camera/stop_capture > /dev/null</system>
+</template>
+</category>
+
+<category>
+<pattern>OPEN LEFT EYE</pattern>
+<template>
+My left eye is open.
+<system>rosservice call /stereo/left/camera/start_capture > /dev/null</system>
+</template>
+</category>
+
+<category>
+<pattern>OPEN RIGHT EYE</pattern>
+<template>
+My right eye is open.
+<system>rosservice call /stereo/right/camera/start_capture > /dev/null</system>
+</template>
+</category>
+
+<category>
+<pattern>CLOSE BOTH EYES</pattern>
+<template>
+OK.  Is this a game?
+<system>rosservice call /stereo/left/camera/stop_capture > /dev/null</system>
+<system>rosservice call /stereo/right/camera/stop_capture > /dev/null</system>
+</template>
+</category>
+
+<category>
+<pattern>OPEN BOTH EYES</pattern>
+<template>
+OK.
+<system>rosservice call /stereo/left/camera/start_capture > /dev/null</system>
+<system>rosservice call /stereo/right/camera/start_capture > /dev/null</system>
+</template>
+</category>
+
+<category>
+<pattern>CLOSE YOUR EYES</pattern>
+<template><srai>CLOSE BOTH EYES</srai></template>
+</category>
+
+<category>
+<pattern>OPEN YOUR EYES</pattern>
+<template><srai>OPEN BOTH EYES</srai></template>
+</category>
+
+<category>
+<pattern>RESET NODES</pattern>
+<template>Are you sure you want me to restart my internal nodes?</template>
+</category>
+
+<category>
+<pattern>YES</pattern>
+<that>ARE YOU SURE YOU WANT ME TO RESTART MY INTERNAL NODES</that>
+<template>
+<system>rostopic pub /boot std_msgs/String -1 "reset" > /dev/null</system>
+</template>
+</category>
+
+<category>
+<pattern>INITIATE SHUTDOWN SEQUENCE</pattern>
+<template>Are you sure you want me to shut down?</template>
+</category>
+
+<category>
+<pattern>YES</pattern>
+<that>ARE YOU SURE YOU WANT ME TO SHUT DOWN</that>
+<template>
+<system>rostopic pub /boot std_msgs/String -1 "shutdown" > /dev/null</system>
+</template>
+</category>
+
+<category>
+<pattern>LOOK UP</pattern>
+<template>
+<system>
+rostopic pub /joy sensor_msgs/Joy -1 "{header: {seq: 0,stamp: {secs: `date +%s`,nsecs: `date +%N`},frame_id: ''},axes: [0.0,1.0,0.0,0.0,0.0,0.0,0.0],buttons: [0,0,0,0,0,0,0,0,0,0,0,0]}" > /dev/null
+</system>
+</template>
+</category>
+
+<category>
+<pattern>LOOK DOWN</pattern>
+<template>
+<system>
+rostopic pub /joy sensor_msgs/Joy -1 "{header: {seq: 0,stamp: {secs: `date +%s`,nsecs: `date +%N`},frame_id: ''},axes: [0.0,-1.0,0.0,0.0,0.0,0.0,0.0],buttons: [0,0,0,0,0,0,0,0,0,0,0,0]}" > /dev/null
+</system>
+</template>
+</category>
+
+<category>
+<pattern>LOOK LEFT</pattern>
+<template>
+<system>
+rostopic pub /joy sensor_msgs/Joy -1 "{header: {seq: 0,stamp: {secs: `date +%s`,nsecs: `date +%N`},frame_id: ''},axes: [1.0,0.0,0.0,0.0,0.0,0.0,0.0],buttons: [0,0,0,0,0,0,0,0,0,0,0,0]}" > /dev/null
+</system>
+</template>
+</category>
+
+<category>
+<pattern>LOOK RIGHT</pattern>
+<template>
+<system>
+rostopic pub /joy sensor_msgs/Joy -1 "{header: {seq: 0,stamp: {secs: `date +%s`,nsecs: `date +%N`},frame_id: ''},axes: [-1.0,0.0,0.0,0.0,0.0,0.0,0.0],buttons: [0,0,0,0,0,0,0,0,0,0,0,0]}" > /dev/null
+</system>
+</template>
+</category>
+
+<category>
+<pattern>LOOK STRAIGHT</pattern>
+<template>
+<system>
+rostopic pub /joy sensor_msgs/Joy -1 "{header: {seq: 0,stamp: {secs: `date +%s`,nsecs: `date +%N`},frame_id: ''},axes: [0.0,0.0,0.0,0.0,0.0,0.0,0.0],buttons: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]}" > /dev/null
+</system>
 </template>
 </category>
 
