@@ -24,13 +24,6 @@ Any similarity of this entity to any fictional persons, living or dead, is purel
 </category>
 
 <category>
-<pattern><bot name="name"/> IS A WHORE</pattern>
-<template>
-How can you say such mean things.
-</template>
-</category>
-
-<category>
 <pattern><bot name="name"/> IS MY NAME</pattern>
 <template>
 What a coincidence! I am <bot name="name"/> too.
