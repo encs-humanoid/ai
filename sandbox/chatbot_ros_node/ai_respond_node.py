@@ -145,8 +145,9 @@ class AIRespondNode(object):
     def respond_to(self, heard_text):
     	if not self.is_speaking:
 	    rospy.loginfo(rospy.get_caller_id() + ": I heard: %s", heard_text)
-	    utterance = self.bot.respond(heard_text, self.session_id)
-	    self.pub.publish(utterance)
+	    utterance = self.bot.respond(heard_text, self.session_id).strip()
+	    if utterance != "":
+		self.pub.publish(utterance)
 	    rospy.loginfo(rospy.get_caller_id() + ": I said: %s", utterance)
 	else:
 	    rospy.loginfo(rospy.get_caller_id() + ": still speaking, can't respond to: %s", heard_text)
@@ -430,4 +431,6 @@ if __name__ == "__main__":
 
         atexit.register(ai.save_kb)
         ai.run()
-    except rospy.ROSInterruptException: pass
+    except rospy.ROSInterruptException:
+	pass
+
