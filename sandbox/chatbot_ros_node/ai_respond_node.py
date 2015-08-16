@@ -10,6 +10,8 @@
 # Publishes To:
 # - say
 # - target_face
+# - control
+# - joy
 #
 # Responses:
 # 1) The node will generate text responses to recognized_speech,
@@ -125,6 +127,11 @@ class AIRespondNode(object):
 
     def on_recognized_speech(self, msg):
     	self.respond_to(msg.data)
+	# ---- HACK ----
+	# update the target face timestamp if we get a recognized speech message
+	# while not perfect, this is an attempt to avoid interrupting conversations
+	# when a new face is recognised
+	self.setkb("target_face_timestamp_s", time())
 
 
     def on_speech_info(self, msg):
