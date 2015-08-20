@@ -237,6 +237,8 @@ class AIRespondNode(object):
 	    # publish new target face
 	    target_face_msg = TargetFace()
 	    target_face_msg.encounter_ids = list(face.encounter_ids)
+	    target_face_msg.name = target_face.name
+	    target_face_msg.id = target_face.id
 	    self.target_face_pub.publish(target_face_msg)
 	    rospy.loginfo('Set target face to %d: %s, %s', target_face.id, str(target_face.name), str(target_face.encounter_ids))
 	return target_face
