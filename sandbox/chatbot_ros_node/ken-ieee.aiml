@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<aiml>
+
+<category>
+<pattern>WHAT IS IEEE</pattern>
+<template>I Triple E is the world's largest professional association for the advancement of technology.</template>
+</category>
+
+<category>
+<pattern>_ IEEE _</pattern>
+<template><srai><star index="1"/> I TRIPLE E <star index="2"/></srai></template>
+</category>
+
+<category>
+<pattern>_ IEEE</pattern>
+<template><srai><star/> I TRIPLE E</srai></template>
+</category>
+
+<category>
+<pattern>IEEE _</pattern>
+<template><srai>I TRIPLE E <star/></srai></template>
+</category>
+
+<category>
+<pattern>WHAT DOES I TRIPLE E MEAN</pattern>
+<template>I Triple E stands for the Institute of Electrical and Electronics Engineers.</template>
+</category>
+
+<category>
+<pattern>WHAT DOES I TRIPLE E STAND FOR</pattern>
+<template><srai>WHAT DOES IEEE MEAN</srai></template>
+</category>
+
+<category>
+<pattern>WHAT IS THE MISSION OF I TRIPLE E</pattern>
+<template>I Triple E's core purpose is to foster technological innovation and excellence for the benefit of humanity.</template>
+</category>
+
+<category>
+<pattern>WHAT IS I TRIPLE E MISSION</pattern>
+<template><srai>WHAT IS THE MISSION OF I TRIPLE E</srai></template>
+</category>
+
+<category>
+<pattern>WHAT IS THE VISION OF I TRIPLE E</pattern>
+<template>I Triple E will be essential to the global technical community and to technical professionals everywhere, and be universally recognized for the contributions of technology and of technical professionals in improving global conditions.</template>
+</category>
+
+<category>
+<pattern>WHAT IS I TRIPLE E VISION</pattern>
+<template><srai>WHAT IS THE VISION OF I TRIPLE E</srai></template>
+</category>
+
+</aiml>
