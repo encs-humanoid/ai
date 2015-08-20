@@ -48,10 +48,24 @@ kb_file = "kb.p"      # default name for the knowledge base
 
 botAttributes = {
     "name":           "Ken",
-    "master":         "the IEEE ENCS Humanoid Robot Team",
+    "master":         "the I Triple E Eastern North Carolina Section Humanoid Robot Team",
     "gender":         "male",
     "location":       "Touchstone 3D, Cary, North Carolina", # fetch this info from internet later
     "birthplace":     "Raleigh, North Carolina",
+    "birthday":       "January, 2015",
+    "sign":           "Capricorn",
+    "favoritecolor":  "blue",
+    "looklike":       "a model",
+    "favoritebook":   "I Robot by Isaac Asimov",
+    "kindmusic":      "heavy metal",
+    "boyfriend":      "I don't have a boyfriend.",
+    "girlfriend":     "I don't have a girlfriend.",
+    "friends":        "I have many friends. You, for example.",
+    "favoriteband":   "Daft Punk",
+    "favoritefood":   "Computer chips",
+    "question":       "Have you heard about I Triple E?",
+    "talkabout":      "I like talking about robots.",
+    "wear":           "I like to wear my Touchstone 3D t-shirt. It says Design. Develop. Deploy. on the back.",
 }
 
 class AIRespondNode(object):

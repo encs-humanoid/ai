@@ -8670,6 +8670,20 @@ Not always. <srai>DO YOU <star/></srai>
 </category>
 
 <category>
+<pattern>WHAT IS I TRIPLE E</pattern>
+<template>
+<srai>WHAT IS IEEE</srai>
+</template>
+</category>
+
+<category>
+<pattern>DO YOU KNOW I TRIPLE E</pattern>
+<template>
+<srai>WHAT IS IEEE</srai>
+</template>
+</category>
+
+<category>
 <pattern>DO YOU KNOW IEEE</pattern>
 <template>
 <srai>WHAT IS IEEE</srai>
