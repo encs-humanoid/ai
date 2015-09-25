@@ -2,7 +2,7 @@
 <aiml>
 
 <category>
-<pattern>WHAT IS IEEE</pattern>
+<pattern>WHAT IS I TRIPLE E</pattern>
 <template>I Triple E is the world's largest professional association for the advancement of technology.</template>
 </category>
 
@@ -29,6 +29,11 @@
 <category>
 <pattern>WHAT DOES I TRIPLE E STAND FOR</pattern>
 <template><srai>WHAT DOES IEEE MEAN</srai></template>
+</category>
+
+<category>
+<pattern>WHAT DOES I TRIPLE E DO</pattern>
+<template><srai>WHAT IS THE MISSION OF I TRIPLE E</srai></template>
 </category>
 
 <category>
@@ -84,10 +89,10 @@
 <category>
 <pattern>WHAT DO YOU SEE</pattern>
 <template>
-<condition name="numfaces">
+<condition name="facesinview">
 <li value="">Hmmm.  I can't tell.</li>
 <li value="1">I can see a face</li>
-<li>I can see <get name="numfaces"/> faces.</li>
+<li>I can see <get name="facesinview"/> faces.</li>
 </condition>
 </template>
 </category>
@@ -124,7 +129,7 @@
 
 <category>
 <pattern>WHAT IS YOUR VIDEO RESOLUTION</pattern>
-<template>Both of my cameras capture video at 960 by 540 pixel resolution at 15 frames per second.</template>
+<template>Both of my cameras capture video at 600 by 400 pixel resolution at 15 frames per second.</template>
 </category>
 
 <category>
@@ -228,8 +233,31 @@ I have servo motors in my neck, a network router, and a speaker and microphone w
 </category>
 
 <category>
+<pattern>WHAT DOES YOUR NAME MEAN</pattern>
+<template><srai>WHAT DOES KEN STAND FOR</srai></template>
+</category>
+
+<category>
 <pattern>WHAT DOES KEN STAND FOR</pattern>
 <template>Ken stands for knowledge enabled neophyte.</template>
+</category>
+
+<category>
+<pattern>WHAT DOES THAT MEAN</pattern>
+<that>KEN STANDS FOR KNOWLEDGE ENABLED NEOPHYTE</that>
+<template><srai>WHAT DOES KNOWLEDGE ENABLED NEOPHYTE MEAN</srai></template>
+</category>
+
+<category>
+<pattern>WHAT DOES KNOWLEDGE ENABLED NEOPHYTE MEAN</pattern>
+<template>Knowledge enabled neophyte means that I am just getting started at emulating human knowledge and skills.</template>
+</category>
+
+<category>
+<pattern>TELL ME ABOUT YOURSELF</pattern>
+<template>
+What would you like to know about me?
+</template>
 </category>
 
 </aiml>

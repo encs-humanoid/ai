@@ -32,6 +32,7 @@
 from __future__ import division
 from __future__ import print_function
 from time import time
+from vision.msg import DetectedFace
 from vision.msg import RecognizedFace
 from vision.msg import TargetFace
 import random
@@ -48,6 +49,7 @@ kb_file = "kb.p"      # default name for the knowledge base
 
 botAttributes = {
     "name":           "Ken",
+    "namemeans":      "Knowledge Enabled Neophyte",
     "master":         "the I Triple E Eastern North Carolina Section Humanoid Robot Team",
     "gender":         "male",
     "location":       "Touchstone 3D, Cary, North Carolina", # fetch this info from internet later
@@ -63,6 +65,7 @@ botAttributes = {
     "friends":        "I have many friends. You, for example.",
     "favoriteband":   "Daft Punk",
     "favoritefood":   "Computer chips",
+    "favoritemovie":  "Short Circuit",
     "question":       "Have you heard about I Triple E?",
     "talkabout":      "I like talking about robots.",
     "wear":           "I like to wear my Touchstone 3D t-shirt. It says Design. Develop. Deploy. on the back.",
@@ -70,12 +73,13 @@ botAttributes = {
 
 class AIRespondNode(object):
     def __init__(self):
-    	global min_match, delta_xy_px, delta_t_ms, min_recent_face_time_ms
+    	global min_match, delta_xy_px, delta_t_ms, max_recent_face_time_ms
         rospy.init_node('ai_respond_node')
 
         self.bot = aiml.Kernel()
         self.bot.learn("aiml-startup.xml")
         self.bot.respond("load aiml b")
+	self.faces_in_view = []
 
         for key, value in botAttributes.iteritems():
             self.bot.setBotPredicate(key, value)
@@ -83,6 +87,7 @@ class AIRespondNode(object):
 	self.is_speaking = False
 
 	speech_topic = self.get_param('~in_speech', '/recognized_speech')
+	detected_face_topic = self.get_param('~in_detected_face', '/detected_face')
 	face_topic = self.get_param('~in_face', '/recognized_face')
 	speech_info_topic = self.get_param('~in_speech_info', '/speech_info')
 	say_topic = self.get_param('~out_response', '/say')
@@ -90,14 +95,16 @@ class AIRespondNode(object):
 	self.max_target_hold_sec = float(self.get_param('~max_target_hold_sec', '15.0'))
 	min_match = int(self.get_param('~min_match', '4'))
 	delta_xy_px = int(self.get_param('~delta_xy_px', '20'))
-	delta_t_ms = int(self.get_param('~delta_t_ms', '1000'))
-	min_recent_face_time_ms = int(self.get_param('~min_recent_face_time_ms', '3000'))
+	# TODO perhaps delta_t_ms and max_recent_face_time_ms should be one parameter?
+	delta_t_ms = int(self.get_param('~delta_t_ms', '2000'))
+	max_recent_face_time_ms = int(self.get_param('~max_recent_face_time_ms', '2000'))
 
         self.load_kb()
 
         self.pub = rospy.Publisher(say_topic, String, queue_size=1)
 	self.target_face_pub = rospy.Publisher(target_topic, TargetFace, queue_size=1)
         rospy.Subscriber(speech_topic, String, self.on_recognized_speech)
+        rospy.Subscriber(detected_face_topic, DetectedFace, self.on_detected_face)
         rospy.Subscriber(face_topic, RecognizedFace, self.on_recognized_face)
         rospy.Subscriber(speech_info_topic, String, self.on_speech_info)
 
@@ -129,7 +136,10 @@ class AIRespondNode(object):
     	'''
 	convenience function to access bot predicates
 	'''
-    	return self.bot.getPredicate(key, self.session_id)
+    	result = self.bot.getPredicate(key, self.session_id)
+	if key == "target_face" and result == "":
+	    result = None
+	return result
 
 
     def setkb(self, key, value):
@@ -159,12 +169,68 @@ class AIRespondNode(object):
     def respond_to(self, heard_text):
     	if not self.is_speaking:
 	    rospy.loginfo(rospy.get_caller_id() + ": I heard: %s", heard_text)
+	    self.update_count_of_faces_in_view()
 	    utterance = self.bot.respond(heard_text, self.session_id).strip()
 	    if utterance != "":
 		self.pub.publish(utterance)
 	    rospy.loginfo(rospy.get_caller_id() + ": I said: %s", utterance)
 	else:
 	    rospy.loginfo(rospy.get_caller_id() + ": still speaking, can't respond to: %s", heard_text)
+
+
+    def on_detected_face(self, detected_face):
+    	# each time a face is detected,
+	# update the list of recent detected faces and
+	# update the facesinview property with the max count of faces from either camera within
+	# the last time period
+
+	counts = {}
+	counts[detected_face.header.frame_id] = 1
+	to_remove = []
+	for f in self.faces_in_view:
+	    # if new face overlaps with position of old face, remove the old one
+	    delta_x = abs(detected_face.x - f.f.x)
+	    delta_y = abs(detected_face.y - f.f.y)
+	    delta_w = abs(detected_face.w - f.f.w)
+	    delta_h = abs(detected_face.h - f.f.h)
+	    if delta_x <= delta_xy_px and \
+	       delta_y <= delta_xy_px and \
+	       delta_w <= delta_xy_px and \
+	       delta_h <= delta_xy_px:
+		to_remove.append(f)
+
+	for f in to_remove:
+	    self.faces_in_view.remove(f)
+
+	self.update_count_of_faces_in_view(counts)
+
+	self.faces_in_view.append(FaceInView(detected_face, time()))
+
+
+    def update_count_of_faces_in_view(self, initial_counts={}):
+	now = time()
+	to_remove = []
+	counts = dict(initial_counts)
+	for f in self.faces_in_view:
+	    #rospy.loginfo(str(now - f.stamp))
+	    if now - f.stamp < max_recent_face_time_ms / 1000.:
+	    	if f.f.header.frame_id in counts:
+		    counts[f.f.header.frame_id] += 1
+		else:
+		    counts[f.f.header.frame_id] = 1
+	    else:
+	    	to_remove.append(f)
+	
+	for f in to_remove:
+	    self.faces_in_view.remove(f)
+
+	if len(counts) > 0:
+	    in_view = max(counts.values())
+	else:
+	    in_view = 0
+	self.setkb("facesinview", str(in_view))
+	#rospy.loginfo(str(self.faces_in_view))
+	#rospy.loginfo('%s faces in view', self.getkb("facesinview"))
 
 
     def on_recognized_face(self, recognized_face):
@@ -176,6 +242,9 @@ class AIRespondNode(object):
 	    rospy.loginfo('Face count is %d', len(faces))
 	else:
 	    face.update(recognized_face.encounter_ids)
+
+	# store the face for matching by proximity
+	faces.append_recent_face(RecentFace(face, recognized_face))
 
 	target_face, greeting = self.update_target_face(face)
 
@@ -259,7 +328,7 @@ class AIRespondNode(object):
 
 
     def save_kb(self):
-        rospy.loginfo(rospy.get_caller_id() + ": I received a kill signal %s")
+        rospy.loginfo(rospy.get_caller_id() + ": I received a kill signal")
         rospy.loginfo(rospy.get_caller_id() + ": Writing KB to %s", kb_file)
         self.kb = self.bot.getSessionData(self.session_id)
 	with open(kb_file, "wb") as f:
@@ -279,6 +348,15 @@ class Rect(object):
 	self.y = y
 	self.w = w
 	self.h = h
+
+
+class FaceInView(object):
+    '''
+    Helper class for tracking faces in view.
+    '''
+    def __init__(self, detected_face, timestamp):
+    	self.f = detected_face
+	self.stamp = timestamp
 
 
 class RecentFace(object):
@@ -313,13 +391,15 @@ class Faces(object):
     	face = self.find_recent_face(recognized_face)
 	if not face:
 	    face = self.find_similar_face(recognized_face)
-	if face:
-	    self.recent_faces.append(RecentFace(face, recognized_face))
 	return face
- 
+
+
+    def append_recent_face(self, recent_face):
+	self.recent_faces.append(recent_face)
+
 
     def find_recent_face(self, recognized_face):
-    	global delta_xy_px, delta_t_ms, min_recent_face_time_ms
+    	global delta_xy_px, delta_t_ms, max_recent_face_time_ms
 	# construct a list of recent faces which are equivalent to the recognized face
 	# due to their proximity in space and time
 	faces = set()
@@ -340,9 +420,10 @@ class Faces(object):
 	face = self.combine_faces(faces)
 
 	# purge faces which are too old to keep
-	#size = len(self.recent_faces)
-    	self.recent_faces = [f for f in self.recent_faces if abs((f.stamp - recognized_face.header.stamp).to_sec() * 1000) <= min_recent_face_time_ms]
-	#print("recent faces reduced from", size, "to", len(self.recent_faces))
+	size = len(self.recent_faces)
+    	self.recent_faces = [f for f in self.recent_faces if abs((f.stamp - recognized_face.header.stamp).to_sec() * 1000) <= max_recent_face_time_ms]
+	if size > 0:
+	    print("recent faces reduced from", size, "to", len(self.recent_faces))
 
 	return face
 
@@ -390,16 +471,17 @@ class Faces(object):
 
 
     def combine_faces(self, faces):
-    	faces = list(faces)  # convert set to list for easy indexing
-	rospy.loginfo('Combining faces %s', str([f.id for f in faces]))
     	if len(faces) == 0:
 	    return None
+    	faces = list(faces)  # convert set to list for easy indexing
+	#rospy.loginfo('Combining faces %s', str([f.id for f in faces]))
 	if len(faces) == 1:
 	    return faces[0]
 	face = faces[0]  # TODO determine the 'best' face to keep from the list
 	for f in faces[1:]:
 	    # remove original face
-	    self.faces.remove(f)
+	    if f in self.faces:
+		self.faces.remove(f)
 	    # add the encounter ids - do this one face at a time to 
 	    # rebuild a histogram of common ids
 	    face.update(f.encounter_ids)
