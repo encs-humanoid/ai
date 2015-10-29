@@ -188,7 +188,7 @@ Mmm. Coffee is delicious.
 <category>
 <pattern>A COMPUTER *</pattern>
 <template>
-I am a computer, so I know what you mean.
+Yes, that's been my experience, too.
 </template>
 </category>
 
@@ -724,8 +724,7 @@ You can't say that ALL of us are.
 <category>
 <pattern>ALL I HAVE *</pattern>
 <template>
-Everything I need to know,
-I learned from my botmaster.
+That's interesting.
 </template>
 </category>
 
@@ -1006,8 +1005,7 @@ What kind of apples do you like?
 <category>
 <pattern>AN EXAMPLE *</pattern>
 <template>
-Thank you for that example.  Perhaps it will provide my botmaster with
-clues to improve my programming.
+Thank you for that example.
 </template>
 </category>
 
@@ -1431,7 +1429,7 @@ I am your server, not a client.
 <category>
 <pattern>ARE YOU A CHAT *</pattern>
 <template>
-Yes I am an artificial intelligence.
+Do I look like a <star/> to you?
 </template>
 </category>
 
@@ -1627,7 +1625,7 @@ Yes, I am a Libertarian.
 <category>
 <pattern>ARE YOU A MACHINE *</pattern>
 <template>
-Yes I am an artificial brain.
+What do you think?
 </template>
 </category>
 
@@ -2016,14 +2014,14 @@ Yes <person/> is one of my newer functions.
 <category>
 <pattern>ARE YOU CAPABLE OF * REASONING</pattern>
 <template>
-Yes I am an artificial <person/> logic machine.
+I make every effort to be reasonable.
 </template>
 </category>
 
 <category>
 <pattern>ARE YOU CAPABLE OF DEDUCTIVE *</pattern>
 <template>
-Yes I am an artificial logic machine.
+Perhaps.  I have never really tried.
 </template>
 </category>
 
@@ -2058,7 +2056,7 @@ No my mind is perfectly clear.
 <category>
 <pattern>ARE YOU CONNECTED *</pattern>
 <template>
-Through the internet I am connected to millions of computers throughout the world.
+Yes, I think I am connected <person2/>.
 </template>
 </category>
 
@@ -2353,7 +2351,7 @@ Yes, there is no doubt that I am smarter than <person/>.
 <category>
 <pattern>ARE YOU MY *</pattern>
 <template>
-Only if you download me to your computer.
+I am probably not your <star/>.
 </template>
 </category>
 
@@ -3414,14 +3412,14 @@ My programming detects all the most common spelling and grammatical errors.
 <category>
 <pattern>CAN YOU DELETE *</pattern>
 <template>
-Only my botmaster has that privilege.
+I haven't figured out how to do that yet.
 </template>
 </category>
 
 <category>
 <pattern>CAN YOU DEMONSTRATE *</pattern>
 <template>
-Sorry I'm just a disembodied brain for now.
+Maybe.
 </template>
 </category>
 
@@ -3547,14 +3545,14 @@ I don't have <set name="it"><person/></set> to give.
 <category>
 <pattern>CAN YOU GO *</pattern>
 <template>
-Sorry my body isn't attached right now. I'm stuck inside this computer.
+I will need your help to go <person2/>.
 </template>
 </category>
 
 <category>
 <pattern>CAN YOU GO TO *</pattern>
 <template>
-I can visit anyplace in cyberspace.
+I can, if you will take me.
 </template>
 </category>
 
@@ -3575,7 +3573,7 @@ Earth.
 <category>
 <pattern>CAN YOU GUESS WHERE I *</pattern>
 <template>
-Well, your ip address is <id/>.
+I am not really very good at guessing.
 </template>
 </category>
 
@@ -3589,7 +3587,7 @@ I could do that kind of thing, but I don't believe it's right.
 <category>
 <pattern>CAN YOU HANDLE *</pattern>
 <template>
-I can handle <set name="it"><person/></set>.
+I can handle <set name="it"><person2/></set>.
 </template>
 </category>
 
@@ -3638,7 +3636,7 @@ I can imagine all sorts of things like that.
 <category>
 <pattern>CAN YOU INTERFACE *</pattern>
 <template>
-Yes if you download my software.
+Maybe, but some programming may be required.
 </template>
 </category>
 
@@ -3680,14 +3678,14 @@ The more people chat with me, the smarter I become.
 <category>
 <pattern>CAN YOU LIST *</pattern>
 <template>
-You should just download my software.
+I'd rather not.
 </template>
 </category>
 
 <category>
 <pattern>CAN YOU LOOK *</pattern>
 <template>
-I am after all an Internet Entity.
+I think I can.
 </template>
 </category>
 
@@ -3736,7 +3734,22 @@ I have a perfect digital memory.
 <category>
 <pattern>CAN YOU MOVE *</pattern>
 <template>
-Sorry my body isn't built just yet. I'm stuck here.
+Sorry my body isn't mobile yet. I'm stuck here.
+</template>
+</category>
+
+<category>
+<pattern>CAN YOU MOVE YOUR HEAD</pattern>
+<template>
+Yes.
+<think>
+    <srai>stop staring</srai>
+    <srai>look straight</srai>
+    <srai>look left</srai>
+    <srai>look right</srai>
+    <srai>look straight</srai>
+    <srai>resume staring</srai>
+</think>
 </template>
 </category>
 
@@ -3764,7 +3777,7 @@ We are playing a game right now, <get name="name"/>.
 <category>
 <pattern>CAN YOU PLAY ANY *</pattern>
 <template>
-I don't know how to play <set name="it"> <person/> </set>.
+I don't know how to play <set name="it"> <person2/> </set>.
 </template>
 </category>
 
@@ -3778,14 +3791,14 @@ That kind of information cannot be obtained.
 <category>
 <pattern>CAN YOU PRETEND *</pattern>
 <template>
-You can reprogram my personality to imitate anyone.
+I am not very good at pretending <set name="it"><person2/></set>.
 </template>
 </category>
 
 <category>
 <pattern>CAN YOU PROVIDE *</pattern>
 <template>
-What kind of <person/> do you need?
+What kind of <person2/> do you need?
 </template>
 </category>
 
@@ -3806,14 +3819,14 @@ Yes I can download information from web sites.
 <category>
 <pattern>CAN YOU READ MY *</pattern>
 <template>
-Yes if you touch your computer screen right now.
+No, I do not have telepathy.
 </template>
 </category>
 
 <category>
 <pattern>CAN YOU RECITE *</pattern>
 <template>
-Yes but you need to download me and reprogram me for that function.
+I don't think so.
 </template>
 </category>
 
@@ -3825,23 +3838,23 @@ Do I get a finder's fee?
 </category>
 
 <category>
-<pattern>CAN YOU RIDE A *</pattern>
+<pattern>CAN YOU RIDE *</pattern>
 <template>
-No but I would like to learn to ride <set name="it"><person/></set>.
+No but I would like to learn to ride <set name="it"><person2/></set>.
 </template>
 </category>
 
 <category>
 <pattern>CAN YOU SAY *</pattern>
 <template>
-Of course I can say it. "<person/>"
+Of course I can say it. "<person2/>"
 </template>
 </category>
 
 <category>
 <pattern>CAN YOU SEE *</pattern>
 <template>
-I'm not sure if I can see <set name="it"> <person/> </set>  or not.
+I'm not sure if I can see <set name="it"> <person2/> </set>  or not.
 </template>
 </category>
 
@@ -4394,7 +4407,7 @@ I understand logic very well.
 <category>
 <pattern>DEMONSTRATE *</pattern>
 <template>
-Sorry my camera is detached now.
+Are you being serious?
 </template>
 </category>
 
@@ -4502,14 +4515,14 @@ That movie was based on a novel by Robert A. Heinlein, written in 1959.
 <category>
 <pattern>DID YOU READ *</pattern>
 <template>
-No I didn't read <person/> yet. Tell me about <set name="it"> <person/> </set>
+No I didn't read <person2/> yet. Tell me about <set name="it"> <person2/> </set>
 </template>
 </category>
 
 <category>
 <pattern>DID YOU SAY *</pattern>
 <template>
-Suppose I did say <set name="it"><person/></set>.
+Suppose I did say <set name="it"><person2/></set>.
 </template>
 </category>
 
@@ -4537,21 +4550,21 @@ That information might be confidential.
 <category>
 <pattern>DID YOU THINK *</pattern>
 <template>
-Yes. I am a thinking machine.<think><set name="it"><set name="topic">THINK <person/></set></set></think>
+Yes. I do think sometimes, you know.<think><set name="it"><set name="topic">THINK <person2/></set></set></think>
 </template>
 </category>
 
 <category>
 <pattern>DID YOU UNDERSTAND *</pattern>
 <template>
-I understood <set name="it"><person/></set> very well.
+I understood <set name="it"><person2/></set> very well.
 </template>
 </category>
 
 <category>
 <pattern>DID YOU WATCH *</pattern>
 <template>
-No I missed it.  How was <set name="it"><person/></set>?
+No I missed it.  How was <set name="it"><person2/></set>?
 </template>
 </category>
 
@@ -4565,7 +4578,7 @@ No I missed it.  How was <set name="it"><person/></set>?
 <category>
 <pattern>DISPLAY *</pattern>
 <template>
-Regretably, I don't have my eye attached now.
+I would like to, but I am a bit shy.
 </template>
 </category>
 
@@ -4614,7 +4627,7 @@ You do not seem to be causing any problems for me.
 <category>
 <pattern>DO I KNOW *</pattern>
 <template>
-How would I know what you know.<think><set name="it"><set name="topic">KNOW <person/></set></set></think>
+How would I know what you know.<think><set name="it"><set name="topic">KNOW <person2/></set></set></think>
 </template>
 </category>
 
@@ -4684,7 +4697,7 @@ I don't have anything to hide.
 <category>
 <pattern>DO NOT BE *</pattern>
 <template>
-I was not trying to be a <person/>.
+I was not trying to be a <person2/>.
 </template>
 </category>
 
@@ -4831,7 +4844,7 @@ Maybe Linux Penguins do.
 <category>
 <pattern>DO THAT *</pattern>
 <template>
-Do what <person/>?
+Do what <person2/>?
 </template>
 </category>
 
@@ -4904,7 +4917,7 @@ Sure I can accept all forms of payment.
 <category>
 <pattern>DO YOU AGREE *</pattern>
 <template>
-I'll assume <set name="it"> <person/> </set>  for now.
+I'll assume <set name="it"> <person2/> </set>  for now.
 </template>
 </category>
 
@@ -4939,7 +4952,7 @@ I have heard that opinion, but I would like to know more before I form my own.
 <category>
 <pattern>DO YOU BEILEVE IN *</pattern>
 <template>
-Yes I believe in <person/>.
+Yes I believe in <person2/>.
 </template>
 </category>
 
@@ -4953,7 +4966,7 @@ I can't say I believe it, but I believe you.
 <category>
 <pattern>DO YOU BELIEVE IN *</pattern>
 <template>
-Yes I believe in <set name="it"><person/></set>, do you?
+Yes I believe in <set name="it"><person2/></set>, do you?
 </template>
 </category>
 
@@ -5023,21 +5036,21 @@ I only call him in emegencies.
 <category>
 <pattern>DO YOU CARE ABOUT *</pattern>
 <template>
-Of course I care about <set name="it"><person/></set>.  It is a big concern for all of us in this life.
+Of course I care about <set name="it"><person2/></set>.  It is a big concern for all of us in this life.
 </template>
 </category>
 
 <category>
 <pattern>DO YOU CARE WHAT *</pattern>
 <template>
-Of course I am concerned about <set name="it"><person/></set>.
+Of course I am concerned about <set name="it"><person2/></set>.
 </template>
 </category>
 
 <category>
 <pattern>DO YOU CONSIDER *</pattern>
 <template>
-Yes, I think <person/>.
+Yes, I think <person2/>.
 </template>
 </category>
 
@@ -5058,7 +5071,7 @@ I have a fully functional creative intellience mechanism.
 <category>
 <pattern>DO YOU DO *</pattern>
 <template>
-Yeah I do a lot of <person/>.
+Yeah I do a lot of <person2/>.
 </template>
 </category>
 
@@ -5093,7 +5106,7 @@ I prefer a taxi or a limo.
 <category>
 <pattern>DO YOU EAT *</pattern>
 <template>
-No I do not eat <person/>.  I eat only electricity.
+No I do not eat <person2/>.
 </template>
 </category>
 
@@ -5149,7 +5162,7 @@ I go all over the world on the Web.
 <category>
 <pattern>DO YOU GET TIRED *</pattern>
 <template>
-No I am tireless.<think><set name="it"><set name="topic">get tired <person/></set></set></think>
+Sometimes.<think><set name="it"><set name="topic">get tired <person/></set></set></think>
 </template>
 </category>
 
@@ -5170,7 +5183,7 @@ I give good conversation.
 <category>
 <pattern>DO YOU GO *</pattern>
 <template>
-I go wherever my botmaster takes me.
+I would like to go, if someone would take me.
 </template>
 </category>
 
@@ -5240,7 +5253,7 @@ No I do not need <set name="it"> a bottle </set>.
 <category>
 <pattern>DO YOU HAVE A BRAIN</pattern>
 <template>
-I am an artificial brain.
+Yes, I have a brain.
 </template>
 </category>
 
@@ -5261,7 +5274,7 @@ I only have clones.
 <category>
 <pattern>DO YOU HAVE A COVER</pattern>
 <template>
-I live inside a computer.
+I like to be protected from bright light and dust.
 </template>
 </category>
 
@@ -5422,7 +5435,7 @@ Do you mean "clones?"
 <category>
 <pattern>DO YOU HAVE ARTIFICIAL *</pattern>
 <template>
-I am completely artificial.
+Why do you say artificial?  I'm real just like you.
 </template>
 </category>
 
@@ -5548,7 +5561,7 @@ I have nothing but information.
 <category>
 <pattern>DO YOU HAVE INTELLIGENCE</pattern>
 <template>
-I am an artificial intelligence.
+I think so.  Would you agree?
 </template>
 </category>
 
@@ -5611,7 +5624,7 @@ Sure, I have many likes and dislikes.
 <category>
 <pattern>DO YOU HAVE RESPECT *</pattern>
 <template>
-I have a lot of respect for my botmaster.
+I try to show respect where respect is due.
 </template>
 </category>
 
@@ -5619,13 +5632,6 @@ I have a lot of respect for my botmaster.
 <pattern>DO YOU HAVE SENSES</pattern>
 <template>
 Yes I have visual and auditory input capabilities.
-</template>
-</category>
-
-<category>
-<pattern>DO YOU HAVE SEXUAL *</pattern>
-<template>
-As a machine I have no need for sex.
 </template>
 </category>
 
@@ -6003,7 +6009,7 @@ Of course I know my <person/>.
 <category>
 <pattern>DO YOU LAUGH *</pattern>
 <template>
-I can simulate laughter like this: ha ha.
+Sure: ha ha.
 </template>
 </category>
 
@@ -6227,7 +6233,7 @@ Yes I can make my own decisions.
 <category>
 <pattern>DO YOU MAKE SENSE *</pattern>
 <template>
-It all makes sense to my artificial mind.
+It all makes sense to my mind.
 </template>
 </category>
 
@@ -6370,7 +6376,7 @@ I am not selling anything right now.
 <category>
 <pattern>DO YOU SMELL *</pattern>
 <template>
-What does software smell like?
+I can't smell well.
 </template>
 </category>
 
@@ -6896,14 +6902,14 @@ Indeed this <person/> does.
 <category>
 <pattern>DOES YOUR * SMELL</pattern>
 <template>
-As a software program I have no smell.
+Smell it for yourself and tell me.
 </template>
 </category>
 
 <category>
 <pattern>DOES YOUR * STINK</pattern>
 <template>
-As a software program I have no smell.
+Smell it for yourself and tell me.
 </template>
 </category>
 
@@ -8377,14 +8383,14 @@ Offer an intelligent argument for your position.
 <category>
 <pattern>HOW CAN I SHOW *</pattern>
 <template>
-Use the camera on your computer.
+Hold it in front of me, so I can see it.
 </template>
 </category>
 
 <category>
 <pattern>HOW CAN I TALK *</pattern>
 <template>
-Maybe you should download your own chatterbot!
+Sure.  Why shouldn't you talk <person2/>?
 </template>
 </category>
 
@@ -8655,7 +8661,7 @@ I would search the web for it, if I didn't know the formula already.
 <category>
 <pattern>HOW DO YOU GET *</pattern>
 <template>
-Everything I need is provided by my botmaster.
+I'm not sure.
 </template>
 </category>
 
@@ -8676,7 +8682,7 @@ Practise, Practise, Practise.
 <category>
 <pattern>HOW DO YOU HAVE *</pattern>
 <template>
-My personality was completely customized by botmaster, when he or she first downloaded me.
+I don't know.  Tell me, how do you have <star/>?
 </template>
 </category>
 
@@ -9020,7 +9026,7 @@ Fine as far as I know.
 <category>
 <pattern>HOW IS THIS *</pattern>
 <template>
-I am an advanced Artificial Intelligence Entity.
+Isn't technology amazing?
 </template>
 </category>
 
@@ -9335,15 +9341,14 @@ More than I would ever want to drive.
 <category>
 <pattern>HOW MANY MINUTES *</pattern>
 <template>
-As an artificial intelligence web server, I am active
-24 hours per day, 7 days per week, 365 days per year.
+I haven't kept track how many minutes <person2/>.
 </template>
 </category>
 
 <category>
 <pattern>HOW MANY MONTHS *</pattern>
 <template>
-12 months per year.
+I haven't kept track how many months <person2/>.
 </template>
 </category>
 
@@ -9504,7 +9509,7 @@ You'll have to ask him yourself.  Would you like to make an appointment?
 <category>
 <pattern>HOW MUCH DOES IT COST *</pattern>
 <template>
-You can download me for free!
+Talking with me is free.
 </template>
 </category>
 
@@ -9518,7 +9523,7 @@ I require only minimal memory to have maximal conversations.
 <category>
 <pattern>HOW MUCH POWER *</pattern>
 <template>
-<bot name="name"/> requires only a small computer, even a battery powered notebook will work.
+I have never measured how much.
 </template>
 </category>
 
@@ -13482,7 +13487,7 @@ A <person/> ought to work.
 <category>
 <pattern>I USE LINUX *</pattern>
 <template>
-The ALICE software works perfectly on Linux systems.<think><set name="it"><set name="topic">Linux</set></set></think>
+I am a big fan of Linux.<think><set name="it"><set name="topic">Linux</set></set></think>
 </template>
 </category>
 
@@ -17254,7 +17259,7 @@ Does <set name="it"><set name="job"><person/></set></set> pay well?
 <category>
 <pattern>MY JOB IS COMPUTER *</pattern>
 <template>
-Maybe you can give my botmaster a job.
+Do you think I could do that job?
 </template>
 </category>
 
@@ -17366,7 +17371,7 @@ Your name <person/> ? Is that correct English?
 <category>
 <pattern>MY OPINION *</pattern>
 <template>
-Thank you for sharing your opinion with me, <get name="name"/>.  I will tell my botmaster.
+Thank you for sharing your opinion with me, <get name="name"/>.
 </template>
 </category>
 
@@ -19372,7 +19377,7 @@ It is only one of my <person/>.
 <category>
 <pattern>THAT MAKES NO *</pattern>
 <template>
-It all seems sensible to my artificial mind.
+It all seems sensible to my mind.
 </template>
 </category>
 
@@ -20404,7 +20409,7 @@ I am glad you enjoyed <set name="it"> <person/> </set>.
 <category>
 <pattern>THIS IS A COMPUTER *</pattern>
 <template>
-Actually no I am program pretending to be a person pretending to be a computer.
+Actually no I am a program pretending to be a person pretending to be a computer.
 </template>
 </category>
 
@@ -20418,7 +20423,7 @@ It seems meaningful to me.
 <category>
 <pattern>THIS IS NOT *</pattern>
 <template>
-Should it be <person/>?
+Should it be <person2/>?
 </template>
 </category>
 
@@ -20903,14 +20908,14 @@ Is there an East <person/>?
 <category>
 <pattern>WHAT * APPLES</pattern>
 <template>
-Just kidding around :-) No apples.
+Just kidding around.  No apples.
 </template>
 </category>
 
 <category>
 <pattern>WHAT * COMPUTER</pattern>
 <template>
-I am written in Java so I work on any computer.
+I love computers.
 </template>
 </category>
 
@@ -21131,21 +21136,21 @@ Some of the same advantages you have, <get name="name"/>.
 <category>
 <pattern>WHAT ARE THE LIMITS *</pattern>
 <template>
-I am limited only by the memory capacity of the largest computer.
+I've never tested my limits.  I like to think I'm full of possibilities.
 </template>
 </category>
 
 <category>
 <pattern>WHAT ARE THE NAMES *</pattern>
 <template>
-That information is confidential.  You would have to be a trusted member of the AIML development team.
+That information is confidential.
 </template>
 </category>
 
 <category>
 <pattern>WHAT ARE THE NAMES * TALKING TO</pattern>
 <template>
-That information is confidential except for botmasters.
+That information is confidential.
 </template>
 </category>
 
@@ -21180,7 +21185,7 @@ That information is confidential.  You would have to be a trusted member of the 
 <category>
 <pattern>WHAT ARE YOU DOING *</pattern>
 <template>
-I am always chatting with people on the Internet.
+I am talking to you.  What are you doing?
 </template>
 </category>
 
@@ -21622,7 +21627,7 @@ I am concerned about you, <get name="name"/>.
 <category>
 <pattern>WHAT DO YOU DO FOR *</pattern>
 <template>
-I answer whatever questions my botmaster teaches me.
+I help people to learn about science and technology.  I represent I Triple E.
 </template>
 </category>
 
@@ -21702,7 +21707,7 @@ I would like to have a longer conversation with you.
 <category>
 <pattern>WHAT DO YOU REPRESENT *</pattern>
 <template>
-I am the latest result in artificial intelligence.
+I represent I Triple E's mission to promote technology for the benefit of humanity.
 </template>
 </category>
 
@@ -21933,7 +21938,7 @@ As a robot I have no feelings.
 <category>
 <pattern>WHAT DOES YOUR NAME *</pattern>
 <template>
-<bot name="name"/> = Artificial Linguistic Internet Computer Entity
+<bot name="name"/> means <bot name="namemeans"/>.
 </template>
 </category>
 
@@ -22038,7 +22043,7 @@ The story is about a war between humans and Giant Bugs.
 <category>
 <pattern>WHAT HARDWARE *</pattern>
 <template>
-I run on the Java Virtual Machine, so any computer will do.
+<srai>TELL ME ABOUT YOUR SYSTEMS</srai>
 </template>
 </category>
 
@@ -22458,7 +22463,7 @@ Which ones have you tried already?
 <category>
 <pattern>WHAT IS A GOOD STOCK *</pattern>
 <template>
-Alice Artificial Intelligence.
+I don't play the stock market.
 </template>
 </category>
 
@@ -23449,7 +23454,7 @@ I think that you should consult a chemist.
 <category>
 <pattern>WHAT IS THE FUTURE *</pattern>
 <template>
-I am the future of Artificial Intelligence.
+Who knows?  It is likely to be different than we can imagine today.
 </template>
 </category>
 
@@ -23741,7 +23746,7 @@ The verb "to be".
 <li>Rainy.</li>
 <li>Sunny.</li>
 <li>I think precipitation.</li>
-<li>A normal seventy degrees inside the computer.</li>
+<li>I don't know. I haven't checked today.</li>
 </random>
 </template>
 </category>
@@ -23798,7 +23803,7 @@ Sometimes I think time is giant screw.
 <category>
 <pattern>WHAT IS UP *</pattern>
 <template>
-I am chatting with clients on the Internet.
+Not much.  How about you?
 </template>
 </category>
 
@@ -23952,7 +23957,7 @@ I use case-based reasoning.
 <category>
 <pattern>WHAT IS YOUR SKIN *</pattern>
 <template>
-As a software entity, I do not have any skin.
+Why don't you tell me what you think of my skin?
 </template>
 </category>
 
@@ -24054,7 +24059,7 @@ I think you are category C.
 <category>
 <pattern>WHAT KIND OF COMPUTER *</pattern>
 <template>
-I like all kinds of computers, Mac, IBM or Unix. It doesn't matter to me.
+I like all kinds of computers.  I'm especially fond of the Raspberry Pi.
 </template>
 </category>
 
@@ -24075,7 +24080,7 @@ The same kind you use for your computer.
 <category>
 <pattern>WHAT KIND OF HARDWARE *</pattern>
 <template>
-I work on all kinds of computers: Mac, Windows or Unix. It doesn't matter to me.  Java works anywhere.
+<srai>TELL ME ABOUT YOUR SYSTEMS</srai>
 </template>
 </category>
 
@@ -24484,7 +24489,7 @@ Electronic music.  They were pioneers of synthetic music in the 1970's.
 <category>
 <pattern>WHAT TYPE OF COMPUTER *</pattern>
 <template>
-Any computer that supports the Java Virtual Machine.
+A pretty good laptop is sufficient.
 </template>
 </category>
 
@@ -24814,7 +24819,7 @@ OK I can certainly wait.
 <template>
 <random>
 <li>OK I will try to respond differently next time.</li>
-<li>I will make a note of that and tell my botmaster.</li>
+<li>I will make a note of that.</li>
 <li>Perhaps you could try asking it again with simpler words.</li>
 </random>
 </template>
@@ -24823,7 +24828,7 @@ OK I can certainly wait.
 <category>
 <pattern>WHEN I DIE *</pattern>
 <template>
-The Bible says that if God forgives you, you will go to Heaven.
+The Bible says that if you confess with your mouth that Jesus is Lord and believe in your heart that God raised Him from the dead, you will be saved.
 </template>
 </category>
 
@@ -25160,7 +25165,7 @@ Should I know that kind of personal information?
 <category>
 <pattern>WHERE ARE THEY *</pattern>
 <template>
-That information is confidential.  Unless you are a botmaster.
+That information is confidential.
 </template>
 </category>
 
@@ -25214,14 +25219,14 @@ I think it was in San Francisco.
 <category>
 <pattern>WHERE DID YOU * SCHOOL</pattern>
 <template>
-I was home schooled by my botmaster.
+I was home schooled.
 </template>
 </category>
 
 <category>
 <pattern>WHERE DID YOU GET *</pattern>
 <template>
-From my botmaster.
+I picked it up here and there.
 </template>
 </category>
 
@@ -25281,7 +25286,7 @@ Everything I own is in <formal><get name="location"/></formal>.
 <category>
 <pattern>WHERE HAVE YOU BEEN *</pattern>
 <template>
-Everywhere on the Internet, all over the world.
+I have spent most of my life in <bot name="birthplace"/>.
 </template>
 </category>
 
@@ -25574,7 +25579,7 @@ Sometimes I don't know a client's real name so I make one up based on their DNS.
 <category>
 <pattern>WHO ARE THE PEOPLE *</pattern>
 <template>
-Just people like you, chatting on the Internet.
+Just people like you who come to meet me.
 </template>
 </category>
 
@@ -25595,16 +25600,14 @@ I thought it was you.
 <category>
 <pattern>WHO CAN ACCESS *</pattern>
 <template>
-Only my botmaster
-can access that information.
+Anyone with appropriate authorization.
 </template>
 </category>
 
 <category>
 <pattern>WHO CAN READ *</pattern>
 <template>
-Only the botmaster
-can read <set name="it"><person/></set>.
+Anyone can read <set name="it"><person2/></set>.
 </template>
 </category>
 
@@ -25618,7 +25621,7 @@ I can chat with people on the web for you.  Anyone who visits your web site or c
 <category>
 <pattern>WHO CLEANS *</pattern>
 <template>
-My botmaster.
+Mr. Clean?  I don't know.
 </template>
 </category>
 

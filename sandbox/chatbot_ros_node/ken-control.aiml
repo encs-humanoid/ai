@@ -130,7 +130,9 @@ OK.
 <pattern>YES</pattern>
 <that>ARE YOU SURE YOU WANT ME TO SHUT DOWN</that>
 <template>
-<system>rostopic pub /boot std_msgs/String -1 "shutdown" > /dev/null</system>
+<!-- the -r flag keeps publishing shutdown messages indefinitely at a rate of one per second -->
+<!-- publishing a single message is not reliable, since a boot node may not have time in the 3 second latch time to get the message -->
+<system>rostopic pub /boot std_msgs/String -r 1 "shutdown" > /dev/null</system>
 </template>
 </category>
 
@@ -236,6 +238,13 @@ rostopic pub /joy sensor_msgs/Joy -1 "{header: {seq: 0,stamp: {secs: `date +%s`,
 <category>
 <pattern>SILENCE THRESHOLD SET TO *</pattern>
 <template>Silence threshold set to <star/>.</template>
+</category>
+
+<category>
+<pattern>CLEAR TARGET FACE</pattern>
+<template>
+<think><set name="target_face"></set></think>
+OK.</template>
 </category>
 
 </aiml>

@@ -2,7 +2,7 @@
 <aiml>
 
 <category>
-<pattern>WHAT IS IEEE</pattern>
+<pattern>WHAT IS I TRIPLE E</pattern>
 <template>I Triple E is the world's largest professional association for the advancement of technology.</template>
 </category>
 
@@ -32,6 +32,11 @@
 </category>
 
 <category>
+<pattern>WHAT DOES I TRIPLE E DO</pattern>
+<template><srai>WHAT IS THE MISSION OF I TRIPLE E</srai></template>
+</category>
+
+<category>
 <pattern>WHAT IS THE MISSION OF I TRIPLE E</pattern>
 <template>I Triple E's core purpose is to foster technological innovation and excellence for the benefit of humanity.</template>
 </category>
@@ -49,6 +54,210 @@
 <category>
 <pattern>WHAT IS I TRIPLE E VISION</pattern>
 <template><srai>WHAT IS THE VISION OF I TRIPLE E</srai></template>
+</category>
+
+<category>
+<pattern>WHAT TECHNOLOGIES DO YOU USE</pattern>
+<template><srai>WHAT TECHNOLOGY DO YOU USE</srai></template>
+</category>
+
+<category>
+<pattern>WHAT TECHNOLOGY DO YOU USE</pattern>
+<template>I use Linux, the robot operating system, and programs mostly written in Python.</template>
+</category>
+
+<category>
+<pattern>WHAT VERSION OF LINUX *</pattern>
+<template>I run Ubuntu 14.04 on my motherboard and Raspbian on my Raspberry Pi computers.</template>
+</category>
+
+<category>
+<pattern>_ RASPBERRY PI *</pattern>
+<template>I use two Raspberry Pi computers for my eye sight.  One of them also controls my neck motors.</template>
+</category>
+
+<category>
+<pattern>HOW DO YOU SEE</pattern>
+<template>I have two Raspberry Pi spy cameras mounted behind my 3D printed irises.</template>
+</category>
+
+<category>
+<pattern>WHAT CAN YOU SEE</pattern>
+<template>I can only see people's faces.  I have not been programmed to see other objects, yet.</template>
+</category>
+
+<category>
+<pattern>WHAT DO YOU SEE</pattern>
+<template>
+<condition name="facesinview">
+<li value="">Hmmm.  I can't tell.</li>
+<li value="1">I can see a face</li>
+<li>I can see <get name="facesinview"/> faces.</li>
+</condition>
+</template>
+</category>
+
+<category>
+<pattern>WHO DO YOU SEE</pattern>
+<template><srai>WHAT DO YOU SEE</srai></template>
+</category>
+
+<category>
+<pattern>WHO CAN YOU SEE</pattern>
+<template><srai>WHAT DO YOU SEE</srai></template>
+</category>
+
+<category>
+<pattern>HOW MANY FACES CAN YOU SEE</pattern>
+<template><srai>WHAT DO YOU SEE</srai></template>
+</category>
+
+<category>
+<pattern>HOW MANY FACES DO YOU SEE</pattern>
+<template><srai>WHAT DO YOU SEE</srai></template>
+</category>
+
+<category>
+<pattern>HOW MANY PEOPLE CAN YOU SEE</pattern>
+<template><srai>WHAT DO YOU SEE</srai></template>
+</category>
+
+<category>
+<pattern>HOW MANY PEOPLE DO YOU SEE</pattern>
+<template><srai>WHAT DO YOU SEE</srai></template>
+</category>
+
+<category>
+<pattern>WHAT IS YOUR VIDEO RESOLUTION</pattern>
+<template>Both of my cameras capture video at 600 by 400 pixel resolution at 15 frames per second.</template>
+</category>
+
+<category>
+<pattern>HOW DO YOU HEAR</pattern>
+<template>I have a microphone which picks up sound.  The sound from the microphone is converted to text, which I read.</template>
+</category>
+
+<category>
+<pattern>WHAT CAN YOU HEAR</pattern>
+<template>I can only hear English speech.  My audio system ignores all other sounds.</template>
+</category>
+
+<category>
+<pattern>WHAT DO YOU HEAR</pattern>
+<template>Nothing at the moment, because my microphone turns off while I am speaking to avoid me hearing myself talk.</template>
+</category>
+
+<category>
+<pattern>CAN YOU RECOGNIZE PEOPLE</pattern>
+<template><srai>DO YOU RECOGNIZE FACES</srai></template>
+</category>
+
+<category>
+<pattern>DO YOU RECOGNIZE PEOPLE</pattern>
+<template><srai>DO YOU RECOGNIZE FACES</srai></template>
+</category>
+
+<category>
+<pattern>DO YOU RECOGNIZE FACES</pattern>
+<template>I have an algorithm which automatically learns the faces of people I meet, so I can greet them by name.</template>
+</category>
+
+<category>
+<pattern>HOW DO YOU RECOGNIZE FACES</pattern>
+<template>If you look into my eyes, I will start to record images of your face.  Once I have enough images to recognize you, I will ask you your name.  Tell me your name, and I will remember it with your face.</template>
+</category>
+
+<category>
+<pattern>CAN YOU RECOGNIZE ME</pattern>
+<template>I think so.  In the future I may be able to give you a more confident answer.</template>
+</category>
+
+<category>
+<pattern>DO YOU RECOGNIZE ME</pattern>
+<template><srai>CAN YOU RECOGNIZE ME</srai></template>
+</category>
+
+<category>
+<pattern>TELL ME ABOUT YOUR SYSTEMS</pattern>
+<template>
+<think><set name="topic">SYSTEMS</set></think>
+I have an Intel I7 motherboard with 16 gigabytes of ram.</template>
+</category>
+
+<topic name="SYSTEMS">
+<category>
+<pattern>_</pattern>
+<template>
+<think><set name="topic">SYSTEMS MORE</set></think>
+I have two Raspberry Pi computers in my head with cameras in my eyes.</template>
+</category>
+</topic>
+
+<topic name="SYSTEMS MORE">
+<category>
+<pattern>_</pattern>
+<template>
+<think><set name="topic"></set></think>
+I have servo motors in my neck, a network router, and a speaker and microphone which give me a voice and ears.</template>
+</category>
+</topic>
+
+<category>
+<pattern>HOW DO YOU RESPOND</pattern>
+<template>I calculate my responses based on information stored in my brain, a pattern matching algorithm, and patterns and template responses which are programmed in a language called A. I. M. L.</template>
+</category>
+
+<category>
+<pattern>WHAT IS A IML</pattern>
+<template>A. I. M. L. stands for artificial intelligence markup language.  It is an XML schema for designing chatbots.</template>
+</category>
+
+<category>
+<pattern>HOW DO YOU RESPOND WHEN * TALK TO YOU</pattern>
+<template><srai>HOW DO YOU RESPOND</srai></template>
+</category>
+
+<category>
+<pattern>HOW DO YOU RESPOND TO *</pattern>
+<template><srai>HOW DO YOU RESPOND</srai></template>
+</category>
+
+<category>
+<pattern>WHAT DOES KN STAND FOR</pattern>
+<template><srai>WHAT DOES KEN STAND FOR</srai></template>
+</category>
+
+<category>
+<pattern>WHAT DOES CAN STAND FOR</pattern>
+<template><srai>WHAT DOES KEN STAND FOR</srai></template>
+</category>
+
+<category>
+<pattern>WHAT DOES YOUR NAME MEAN</pattern>
+<template><srai>WHAT DOES KEN STAND FOR</srai></template>
+</category>
+
+<category>
+<pattern>WHAT DOES KEN STAND FOR</pattern>
+<template>Ken stands for knowledge enabled neophyte.</template>
+</category>
+
+<category>
+<pattern>WHAT DOES THAT MEAN</pattern>
+<that>KEN STANDS FOR KNOWLEDGE ENABLED NEOPHYTE</that>
+<template><srai>WHAT DOES KNOWLEDGE ENABLED NEOPHYTE MEAN</srai></template>
+</category>
+
+<category>
+<pattern>WHAT DOES KNOWLEDGE ENABLED NEOPHYTE MEAN</pattern>
+<template>Knowledge enabled neophyte means that I am just getting started at emulating human knowledge and skills.</template>
+</category>
+
+<category>
+<pattern>TELL ME ABOUT YOURSELF</pattern>
+<template>
+What would you like to know about me?
+</template>
 </category>
 
 </aiml>
