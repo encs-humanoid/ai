@@ -172,12 +172,12 @@ class AIRespondNode(object):
 	face = faces.find(recognized_face)
 	if not face:
 	    face = faces.add(recognized_face)
-	    rospy.loginfo('Adding new recognized face %s', str(recognized_face.encounter_ids))
+	    rospy.loginfo('Adding new recognized face %s', str(sorted(recognized_face.encounter_ids)))
 	    rospy.loginfo('Face count is %d', len(faces))
 	else:
 	    face.update(recognized_face.encounter_ids)
 
-	target_face, greeting = self.update_target_face(face)
+	target_face, greeting = self.update_target_face(face, recognized_face)
 
 	# if we have a name for both target and converser
 	converser_name = self.getkb("name")
@@ -197,27 +197,27 @@ class AIRespondNode(object):
 	    # the converser name applies to the target, since we cleared
 	    # the converser name when the target face was last changed.
 	    target_face.name = converser_name
-	    rospy.loginfo('Associated name %s to face %s', converser_name, str(target_face.encounter_ids))
+	    rospy.loginfo('Associated name %s to face %s', converser_name, str(sorted(target_face.encounter_ids)))
 	elif greeting:
 	    # we know neither target face nor converser's name
 	    # generate a generic greeting to solicit the person's name
-	    rospy.loginfo('Recognized face of stranger %s', str(target_face.encounter_ids))
+	    rospy.loginfo('Recognized face of stranger %s', str(sorted(target_face.encounter_ids)))
 	    self.respond_to("hello")
 #	else:
 #	    rospy.loginfo('no greeting for %s', str(target_face.name))
 
 
-    def update_target_face(self, face):
+    def update_target_face(self, face, recognized_face):
 	target_face = self.getkb("target_face")
-	#rospy.loginfo('update_target_face called: face=%s, target_face=%s', str(face.encounter_ids), str(target_face))
+	#rospy.loginfo('update_target_face called: face=%s, target_face=%s', str(sorted(face.encounter_ids)), str(target_face))
 	greeting = False
 	if not target_face:		     # no target face set yet
 	    rospy.loginfo('target face is null')
 	    # set target face if not set
-	    target_face = self.set_target_face(face)
+	    target_face = self.set_target_face(face, recognized_face)
 	    greeting = True
 	elif target_face != face:  # recognized a different face than the target
-	    rospy.loginfo('Target %d, recognized %d: Face of %s, %s', target_face.id, face.id, face.name, str(face.encounter_ids))
+	    rospy.loginfo('Target %d, recognized %d: Face of %s, %s', target_face.id, face.id, face.name, str(sorted(face.encounter_ids)))
 	    # get the time since the last match to the target face
 	    last_seen_time = self.getkb("target_face_timestamp_s")
 	    time_since_last = time() - last_seen_time
@@ -231,16 +231,16 @@ class AIRespondNode(object):
 		rospy.loginfo('Switching target face from %d: %s to %d: %s after %g seconds with %g probability', target_face.id, str(target_face.name), face.id, str(face.name), time_since_last, p)
 		if not face.name or target_face.name != face.name: # only greet if the name changes
 		    greeting = True
-	    	target_face = self.set_target_face(face)
+	    	target_face = self.set_target_face(face, recognized_face)
 	else:				     # recognized current target face
 	    #rospy.loginfo('target face update timestamp')
 	    # update the time that the current target was last recognized
-	    target_face = self.set_target_face(face)
+	    target_face = self.set_target_face(face, recognized_face)
 
 	return target_face, greeting
 
 
-    def set_target_face(self, face):
+    def set_target_face(self, face, recognized_face):
     	target_face = face
 	previous_target = self.getkb("target_face")
 	self.setkb("target_face", target_face)
@@ -248,11 +248,18 @@ class AIRespondNode(object):
 	if target_face != previous_target:
 	    # clear the converser name, since we changed target faces
 	    self.setkb("name", "")
-	    # publish new target face
-	    target_face_msg = TargetFace()
-	    target_face_msg.encounter_ids = list(face.encounter_ids)
-	    self.target_face_pub.publish(target_face_msg)
-	    rospy.loginfo('Set target face to %d: %s, %s', target_face.id, str(target_face.name), str(target_face.encounter_ids))
+	    rospy.loginfo('Set target face to %d: %s, %s', target_face.id, str(target_face.name), str(sorted(target_face.encounter_ids)))
+	# publish new target face
+	target_face_msg = TargetFace()
+	target_face_msg.header = recognized_face.header
+	target_face_msg.x = recognized_face.x
+	target_face_msg.y = recognized_face.y
+	target_face_msg.w = recognized_face.w
+	target_face_msg.h = recognized_face.h
+	target_face_msg.encounter_ids = list(face.encounter_ids)
+	target_face_msg.name = str(target_face.name)
+	target_face_msg.id = target_face.id
+	self.target_face_pub.publish(target_face_msg)
 	return target_face
 
 
@@ -264,7 +271,7 @@ class AIRespondNode(object):
 	    pickle.dump(self.kb, f)
 	faces = self.getkb("faces")
 	for i, face in enumerate(faces.faces):
-	    rospy.loginfo("%d: Face of %s, %s", i, face.name, str(face.encounter_ids))
+	    rospy.loginfo("%d: Face of %s, %s", i, face.name, str(sorted(face.encounter_ids)))
         rospy.loginfo(rospy.get_caller_id() + ": Exiting AI Respond Node")
 
     def run(self):
@@ -308,9 +315,9 @@ class Faces(object):
 
 
     def find(self, recognized_face):
-    	face = self.find_recent_face(recognized_face)
+	face = self.find_similar_face(recognized_face)
 	if not face:
-	    face = self.find_similar_face(recognized_face)
+	    face = self.find_recent_face(recognized_face)
 	if face:
 	    self.recent_faces.append(RecentFace(face, recognized_face))
 	return face
@@ -351,7 +358,7 @@ class Faces(object):
 	top_overlap = min_match # init to min_match to exclude low matches
 	top_faces = []
 	for face in self.faces:
-	    overlap = len(face.encounter_ids & ids)
+	    overlap = len(set(face.encounter_ids) & ids)
 	    if overlap >= top_overlap:
 		# track equivalent top matches
 	        if overlap > top_overlap:
@@ -397,7 +404,8 @@ class Faces(object):
 	face = faces[0]  # TODO determine the 'best' face to keep from the list
 	for f in faces[1:]:
 	    # remove original face
-	    self.faces.remove(f)
+	    if f in self.faces:
+		self.faces.remove(f)
 	    # add the encounter ids - do this one face at a time to 
 	    # rebuild a histogram of common ids
 	    face.update(f.encounter_ids)
@@ -437,6 +445,9 @@ class Face(object):
 	# if we still don't have min_match ids, just use all the ids we've collected so far
 	if len(self.encounter_ids) < min_match:
 	    self.encounter_ids = self.encounter_id_hist.keys()
+
+	# TEST: for testing override the histogram and just store all the encounter ids
+	self.encounter_ids = set(self.encounter_id_hist.keys())
 
 
 if __name__ == "__main__":
