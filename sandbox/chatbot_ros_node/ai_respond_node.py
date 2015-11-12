@@ -74,6 +74,7 @@ botAttributes = {
 class AIRespondNode(object):
     def __init__(self):
     	global min_match, delta_xy_px, delta_t_ms, max_recent_face_time_ms
+    	global enable_learning, enable_proximity_match
         rospy.init_node('ai_respond_node')
 
         self.bot = aiml.Kernel()
@@ -85,6 +86,8 @@ class AIRespondNode(object):
             self.bot.setBotPredicate(key, value)
         self.session_id = "test1234"
 	self.is_speaking = False
+	enable_learning = True
+	enable_proximity_match = False
 
 	speech_topic = self.get_param('~in_speech', '/recognized_speech')
 	detected_face_topic = self.get_param('~in_detected_face', '/detected_face')
@@ -93,7 +96,7 @@ class AIRespondNode(object):
 	say_topic = self.get_param('~out_response', '/say')
 	target_topic = self.get_param('~out_target', '/target_face')
 	self.max_target_hold_sec = float(self.get_param('~max_target_hold_sec', '15.0'))
-	min_match = int(self.get_param('~min_match', '4'))
+	min_match = int(self.get_param('~min_match', '2'))
 	delta_xy_px = int(self.get_param('~delta_xy_px', '20'))
 	# TODO perhaps delta_t_ms and max_recent_face_time_ms should be one parameter?
 	delta_t_ms = int(self.get_param('~delta_t_ms', '2000'))
@@ -234,6 +237,7 @@ class AIRespondNode(object):
 
 
     def on_recognized_face(self, recognized_face):
+    	global enable_learning, enable_proximity_match
 	faces = self.getkb("faces")
 	face = faces.find(recognized_face)
 	if not face:
@@ -244,7 +248,8 @@ class AIRespondNode(object):
 	    face.update(recognized_face.encounter_ids)
 
 	# store the face for matching by proximity
-	faces.append_recent_face(RecentFace(face, recognized_face))
+	if enable_proximity_match:
+	    faces.append_recent_face(RecentFace(face, recognized_face))
 
 	target_face, greeting = self.update_target_face(face, recognized_face)
 
@@ -274,6 +279,8 @@ class AIRespondNode(object):
 	    self.respond_to("hello")
 #	else:
 #	    rospy.loginfo('no greeting for %s', str(target_face.name))
+
+	self.publish_target_face(target_face, face, recognized_face)
 
 
     def update_target_face(self, face, recognized_face):
@@ -318,29 +325,36 @@ class AIRespondNode(object):
 	    # clear the converser name, since we changed target faces
 	    self.setkb("name", "")
 	    rospy.loginfo('Set target face to %d: %s, %s', target_face.id, str(target_face.name), str(sorted(target_face.encounter_ids)))
-	# publish new target face
+	return target_face
+
+
+    def publish_target_face(self, target_face, face, recognized_face):
+	# publish target face message
 	target_face_msg = TargetFace()
 	target_face_msg.header = recognized_face.header
 	target_face_msg.x = recognized_face.x
 	target_face_msg.y = recognized_face.y
 	target_face_msg.w = recognized_face.w
 	target_face_msg.h = recognized_face.h
-	target_face_msg.encounter_ids = list(face.encounter_ids)
+	target_face_msg.encounter_ids = list(target_face.encounter_ids)
 	target_face_msg.name = str(target_face.name)
 	target_face_msg.id = target_face.id
+	target_face_msg.recog_name = str(face.name)
+	target_face_msg.recog_id = face.id
 	self.target_face_pub.publish(target_face_msg)
-	return target_face
 
 
     def save_kb(self):
+    	global enable_learning
         rospy.loginfo(rospy.get_caller_id() + ": I received a kill signal")
-        rospy.loginfo(rospy.get_caller_id() + ": Writing KB to %s", kb_file)
-        self.kb = self.bot.getSessionData(self.session_id)
-	with open(kb_file, "wb") as f:
-	    pickle.dump(self.kb, f)
-	faces = self.getkb("faces")
-	for i, face in enumerate(faces.faces):
-	    rospy.loginfo("%d: Face of %s, %s", i, face.name, str(sorted(face.encounter_ids)))
+	if enable_learning:
+	    rospy.loginfo(rospy.get_caller_id() + ": Writing KB to %s", kb_file)
+	    self.kb = self.bot.getSessionData(self.session_id)
+	    with open(kb_file, "wb") as f:
+		pickle.dump(self.kb, f)
+	    faces = self.getkb("faces")
+	    for i, face in enumerate(faces.faces):
+		rospy.loginfo("%d: Face %d of %s, %s", i, face.id, face.name, str(sorted(face.encounter_ids)))
         rospy.loginfo(rospy.get_caller_id() + ": Exiting AI Respond Node")
 
     def run(self):
@@ -393,20 +407,26 @@ class Faces(object):
 
 
     def find(self, recognized_face):
+    	global enable_proximity_match
 	face = self.find_similar_face(recognized_face)
 	if not face:
 	    face = self.find_recent_face(recognized_face)
-	if face:
+	if face and enable_proximity_match:
 	    self.recent_faces.append(RecentFace(face, recognized_face))
 	return face
 
 
     def append_recent_face(self, recent_face):
-	self.recent_faces.append(recent_face)
+    	global enable_proximity_match
+	if enable_proximity_match:
+	    self.recent_faces.append(recent_face)
 
 
     def find_recent_face(self, recognized_face):
-    	global delta_xy_px, delta_t_ms, max_recent_face_time_ms
+    	global delta_xy_px, delta_t_ms, max_recent_face_time_ms, enable_proximity_match
+	if not enable_proximity_match:
+	    return None
+
 	# construct a list of recent faces which are equivalent to the recognized face
 	# due to their proximity in space and time
 	faces = set()
@@ -441,7 +461,13 @@ class Faces(object):
 	top_overlap = min_match # init to min_match to exclude low matches
 	top_faces = []
 	for face in self.faces:
-	    overlap = len(set(face.encounter_ids) & ids)
+	    #overlap = len(set(face.encounter_ids) & ids)
+	    h = face.encounter_id_hist
+	    all = list(set(h.keys()) | ids)
+	    mx = max(h.values())
+	    l1 = [1 if i in ids else 0 for i in all]
+	    l2 = [h[i]/mx if i in h else 0 for i in all]
+	    overlap = sum([l1[i] * l2[i] for i in xrange(len(all))])
 	    if overlap >= top_overlap:
 		# track equivalent top matches
 	        if overlap > top_overlap:
@@ -465,9 +491,11 @@ class Faces(object):
 
 
     def add(self, recognized_face):
+    	global enable_learning
     	face = Face(self.next_face_id())
-	face.update(recognized_face.encounter_ids)
-	self.faces.append(face)
+	if enable_learning:
+	    face.update(recognized_face.encounter_ids)
+	    self.faces.append(face)
 	return face
 
 
@@ -510,27 +538,28 @@ class Face(object):
 	Update the histogram of encounter ids for this face and reset
 	the encounter ids set to the values which most frequently appear.
 	'''
-	global min_match
-        for id in encounter_ids:
-	    if id not in self.encounter_id_hist:
-	    	self.encounter_id_hist[id] = 0
-	    self.encounter_id_hist[id] += 1
+	global min_match, enable_learning
+	if enable_learning:
+	    for id in encounter_ids:
+		if id not in self.encounter_id_hist:
+		    self.encounter_id_hist[id] = 0
+		self.encounter_id_hist[id] += 1
 
-	# loop to iteratively lower the threshold until we find at least min_match ids
-	for i in range(2, 8):
-	    # reinitialize encounter ids from the histogram
-	    threshold = max(self.encounter_id_hist.values()) / float(i) 
-	    self.encounter_ids = set([k for k,v in self.encounter_id_hist.items() if v >= threshold])
-	    # if we have enough ids, then break out of the loop
-	    if len(self.encounter_ids) >= min_match:
-		break
+	    # loop to iteratively lower the threshold until we find at least min_match ids
+	    for i in range(2, 8):
+		# reinitialize encounter ids from the histogram
+		threshold = max(self.encounter_id_hist.values()) / float(i) 
+		self.encounter_ids = set([k for k,v in self.encounter_id_hist.items() if v >= threshold])
+		# if we have enough ids, then break out of the loop
+		if len(self.encounter_ids) >= min_match:
+		    break
 
-	# if we still don't have min_match ids, just use all the ids we've collected so far
-	if len(self.encounter_ids) < min_match:
-	    self.encounter_ids = self.encounter_id_hist.keys()
+	    # if we still don't have min_match ids, just use all the ids we've collected so far
+	    if len(self.encounter_ids) < min_match:
+		self.encounter_ids = self.encounter_id_hist.keys()
 
-	# TEST: for testing override the histogram and just store all the encounter ids
-	self.encounter_ids = set(self.encounter_id_hist.keys())
+	    # TEST: for testing override the histogram and just store all the encounter ids
+	    #self.encounter_ids = set(self.encounter_id_hist.keys())
 
 
 if __name__ == "__main__":
