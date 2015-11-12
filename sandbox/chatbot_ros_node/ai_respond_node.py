@@ -35,8 +35,10 @@ from time import time
 from vision.msg import DetectedFace
 from vision.msg import RecognizedFace
 from vision.msg import TargetFace
+import collections
 import random
 import sys
+import numpy as np
 import os.path
 import pickle
 import rospy
@@ -96,7 +98,7 @@ class AIRespondNode(object):
 	say_topic = self.get_param('~out_response', '/say')
 	target_topic = self.get_param('~out_target', '/target_face')
 	self.max_target_hold_sec = float(self.get_param('~max_target_hold_sec', '15.0'))
-	min_match = int(self.get_param('~min_match', '2'))
+	min_match = int(self.get_param('~min_match', '3'))
 	delta_xy_px = int(self.get_param('~delta_xy_px', '20'))
 	# TODO perhaps delta_t_ms and max_recent_face_time_ms should be one parameter?
 	delta_t_ms = int(self.get_param('~delta_t_ms', '2000'))
@@ -458,6 +460,36 @@ class Faces(object):
     def find_similar_face(self, recognized_face):
 	global min_match
 	ids = set(recognized_face.encounter_ids)
+	# first, combine all faces with at least min_match overlap to the recognized face
+	# as they all represent the same person; keep the most common name, if any
+	same_faces = []
+	name_count = collections.defaultdict(int)
+	# collect all faces for the same person
+	for face in self.faces:
+	    overlap = len(set(face.encounter_ids) & ids)
+	    if overlap >= min_match:
+	    	same_faces.append(face)
+		if face.name is not None:
+		    name_count[face.name] += 1
+	# determine the most common name of the collected faces
+	if len(name_count) > 0:
+	    names = [n for n in name_count.keys()]
+	    counts = [name_count[n] for n in names]
+	    name = names[np.argmax(counts)]
+	else:
+	    name = None
+	# combine the faces into one object under a single name
+	if len(same_faces) > 0:
+	    face = same_faces[0]
+	    face.name = name
+	    for other_face in same_faces[1:]:
+		for i in other_face.encounter_id_hist:
+		    if i in face.encounter_id_hist:
+			face.encounter_id_hist[i] = max(face.encounter_id_hist[i], other_face.encounter_id_hist[i])
+		    else:
+			face.encounter_id_hist[i] = other_face.encounter_id_hist[i]
+		self.faces.remove(other_face)
+
 	top_overlap = min_match # init to min_match to exclude low matches
 	top_faces = []
 	for face in self.faces:
