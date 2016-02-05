@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<aiml version="1.0">
+
+<category>
+    <pattern>WHAT IS YOUR FAVORITE SONG</pattern>
+    <template>
+	<think>
+	    <set name="topic">TINY LITTLE ROBOTS</set>
+	</think>
+	Tiny little robots.  Do you know it?
+    </template>
+</category>
+
+<topic name="TINY LITTLE ROBOTS">
+    <category>
+	<that>DO YOU KNOW IT</that>
+	<pattern>YES</pattern>
+	<template>What do you think of it?</template>
+    </category>
+
+    <category>
+	<that>WHAT DO YOU THINK OF IT</that>
+	<pattern>I LIKE IT</pattern>
+	<template>I wish I could dance like Cage the Elephant's lead singer Matt.</template>
+    </category>
+
+    <category>
+	<that>DO YOU KNOW IT</that>
+	<pattern>NO</pattern>
+	<template>It's a song by Cage the Elephant.  I like the line that says, "I know that you're tired of this, Cause you're a robot."</template>
+    </category>
+</topic>
+
+</aiml>
+
