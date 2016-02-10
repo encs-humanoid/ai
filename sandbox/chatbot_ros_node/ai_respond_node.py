@@ -98,7 +98,7 @@ class AIRespondNode(object):
 	say_topic = self.get_param('~out_response', '/say')
 	target_topic = self.get_param('~out_target', '/target_face')
 	self.max_target_hold_sec = float(self.get_param('~max_target_hold_sec', '15.0'))
-	min_match = int(self.get_param('~min_match', '3'))
+	min_match = int(self.get_param('~min_match', '4'))
 	delta_xy_px = int(self.get_param('~delta_xy_px', '20'))
 	# TODO perhaps delta_t_ms and max_recent_face_time_ms should be one parameter?
 	delta_t_ms = int(self.get_param('~delta_t_ms', '2000'))
@@ -241,7 +241,7 @@ class AIRespondNode(object):
     def on_recognized_face(self, recognized_face):
     	global enable_learning, enable_proximity_match
 	faces = self.getkb("faces")
-	face = faces.find(recognized_face)
+	face = faces.find(recognized_face, self)
 	if not face:
 	    face = faces.add(recognized_face)
 	    rospy.loginfo('Adding new recognized face %s', str(sorted(recognized_face.encounter_ids)))
@@ -262,7 +262,6 @@ class AIRespondNode(object):
 	    if target_face.name != converser_name:
 	    	# update converser name to match target face name
 		# set in ken-recognize.aiml rather than here
-	    	#self.setkb("name", target_face.name)
 		rospy.loginfo('Recognized face of %s', str(target_face.name))
 		# trigger response which includes converser's name
 		self.respond_to("recognize " + target_face.name)
@@ -408,13 +407,14 @@ class Faces(object):
 	return len(self.faces)
 
 
-    def find(self, recognized_face):
+    def find(self, recognized_face, node):
     	global enable_proximity_match
-	face = self.find_similar_face(recognized_face)
-	if not face:
-	    face = self.find_recent_face(recognized_face)
-	if face and enable_proximity_match:
-	    self.recent_faces.append(RecentFace(face, recognized_face))
+	face = self.find_similar_face(recognized_face, node)
+	# TODO try to enable proximity match to avoid duplicate faces
+	#if not face:
+	#    face = self.find_recent_face(recognized_face)
+	#if face and enable_proximity_match:
+	#    self.recent_faces.append(RecentFace(face, recognized_face))
 	return face
 
 
@@ -424,6 +424,7 @@ class Faces(object):
 	    self.recent_faces.append(recent_face)
 
 
+    # TODO not currently used - either use or remove
     def find_recent_face(self, recognized_face):
     	global delta_xy_px, delta_t_ms, max_recent_face_time_ms, enable_proximity_match
 	if not enable_proximity_match:
@@ -457,16 +458,69 @@ class Faces(object):
 	return face
 
 
-    def find_similar_face(self, recognized_face):
+    # TODO this code needs some refactoring attention
+    def find_similar_face(self, recognized_face, node):
 	global min_match
 	ids = set(recognized_face.encounter_ids)
+	rospy.loginfo("finding faces similar to " + str(sorted(ids)))
+	
+	# before searching for a matching face, first use information from this
+	# recognized face to consolidate duplicate faces.  If two known faces
+	# overlap with a single recognized face by more than min_match (the
+	# identity recognition threshold) then they are duplicates and can be
+	# merged.
+	self.consolidate_duplicate_faces(ids, node)
+
+	# match the recognized face to known faces
+	top_overlap = min_match # init to min_match to exclude low matches
+	top_faces = []
+	for face in self.faces:
+	    overlap = len(set(face.encounter_ids) & ids)
+	    if overlap >= top_overlap:
+		rospy.loginfo("top overlap with " + str(face.id) + " is " + str(overlap))
+		# track equivalent top matches
+	        if overlap > top_overlap:
+		    top_faces[:] = []	    # clear list if better match found
+		top_faces.append(face) 
+	        top_overlap = overlap
+	rospy.loginfo("found " + str(len(top_faces)) + " top faces: " + str([f.id for f in top_faces]))
+	top_face = None
+
+	# look for a face with a name first
+	for face in top_faces:
+	    if face.name:
+	    	top_face = face
+		break
+	if top_face:
+	    rospy.loginfo("found top face with name: " + str(top_face.id) + ", " + str(top_face.name))
+	else:
+	    rospy.loginfo("no top face with name found")
+
+	# if no face with a name, choose the most general match
+	longest = top_overlap
+	if not top_face:
+	    for face in top_faces:
+		if len(face.encounter_ids) >= longest: # use >= to ensure at least one match
+		    top_face = face
+		    longest = len(face.encounter_ids)
+	if top_face:
+	    rospy.loginfo("returning top face: " + str(top_face.id) + ", " + str(top_face.name) + ", longest=" + str(longest))
+	else:
+	    rospy.loginfo("no similar face found for min_match=" + str(min_match))
+	return top_face  # may be None if no match was > min_match threshold
+
+
+    def consolidate_duplicate_faces(self, ids, node):
 	# first, combine all faces with at least min_match overlap to the recognized face
 	# as they all represent the same person; keep the most common name, if any
 	same_faces = []
 	name_count = collections.defaultdict(int)
 	# collect all faces for the same person
+        rospy.loginfo("collecting faces of same person from " + str(len(self.faces)) + " faces")
 	for face in self.faces:
 	    overlap = len(set(face.encounter_ids) & ids)
+	    if overlap > 0:
+		rospy.loginfo("overlap with " + str(face.id) + " is " + str(overlap))
 	    if overlap >= min_match:
 	    	same_faces.append(face)
 		if face.name is not None:
@@ -482,39 +536,9 @@ class Faces(object):
 	    name = names[np.argmax(counts)]
 	else:
 	    name = None
+        rospy.loginfo("determined most common name is " + str(name))
 	# combine the faces into one object under a single name
-	self.combine_faces2(same_faces, name)
-
-	top_overlap = min_match # init to min_match to exclude low matches
-	top_faces = []
-	for face in self.faces:
-	    #overlap = len(set(face.encounter_ids) & ids)
-	    h = face.encounter_id_hist
-	    all = list(set(h.keys()) | ids)
-	    mx = max(h.values())
-	    l1 = [1 if i in ids else 0 for i in all]
-	    l2 = [h[i]/mx if i in h else 0 for i in all]
-	    overlap = sum([l1[i] * l2[i] for i in xrange(len(all))])
-	    if overlap >= top_overlap:
-		# track equivalent top matches
-	        if overlap > top_overlap:
-		    top_faces[:] = []	    # clear list if better match found
-		top_faces.append(face) 
-	        top_overlap = overlap
-	top_face = None
-	# look for a face with a name first
-	for face in top_faces:
-	    if face.name:
-	    	top_face = face
-		break
-	# if no face with a name, choose the most general match
-	longest = top_overlap
-	if not top_face:
-	    for face in top_faces:
-		if len(face.encounter_ids) >= longest: # use >= to ensure at least one match
-		    top_face = face
-		    longest = len(face.encounter_ids)
-	return top_face  # may be None if no match was > min_match threshold
+	self.combine_faces2(same_faces, name, node)
 
 
     def group_faces_by_name(self, same_faces):
@@ -525,10 +549,12 @@ class Faces(object):
 	return faces_by_name
 
 
-    def combine_faces2(self, same_faces, name):
-	if len(same_faces) > 0:
+    def combine_faces2(self, same_faces, name, node):
+	if len(same_faces) > 1:
+	    rospy.loginfo("found " + str(len(same_faces)) + " duplicates")
 	    face = same_faces[0]  # keep the first face
-	    face.name = name	  # assign the name
+	    face.name = name      # assign the name
+	    rospy.loginfo("keeping face " + str(face.id) + " with name " + str(face.name))
 	    # merge the other faces into it
 	    for other_face in same_faces[1:]:
 		for i in other_face.encounter_id_hist:
@@ -536,8 +562,16 @@ class Faces(object):
 			face.encounter_id_hist[i] = max(face.encounter_id_hist[i], other_face.encounter_id_hist[i])
 		    else:
 			face.encounter_id_hist[i] = other_face.encounter_id_hist[i]
+		# if removed face is the target, then update target to the kept face
+		target_face = node.getkb("target_face")
+		if target_face == other_face:
+		    node.setkb("target_face", face)
+		    rospy.loginfo("replaced target face " + str(target_face.id) + " with face " + str(face.id))
+		rospy.loginfo("removing face " + str(other_face.id) + " with name " + str(other_face.name))
 		# remove the other faces from the faces list
 		self.faces.remove(other_face)
+	    face.encounter_ids = set(face.encounter_id_hist.keys())
+	    rospy.loginfo("merged face " + str(face.id) + " encounter ids: " + str(sorted(face.encounter_ids)))
 	    return face
 	return None
 
@@ -557,6 +591,7 @@ class Faces(object):
 	return next_id
 
 
+    # TODO not currently used - either use or remove
     def combine_faces(self, faces):
     	if len(faces) == 0:
 	    return None
@@ -588,30 +623,18 @@ class Face(object):
     def update(self, encounter_ids):
     	'''
 	Update the histogram of encounter ids for this face and reset
-	the encounter ids set to the values which most frequently appear.
+	the encounter ids set to the histogram's key set.
+
+	Note: Although the histogram is maintained here, it is not currently used.
 	'''
-	global min_match, enable_learning
+	global enable_learning
 	if enable_learning:
 	    for id in encounter_ids:
 		if id not in self.encounter_id_hist:
 		    self.encounter_id_hist[id] = 0
 		self.encounter_id_hist[id] += 1
 
-	    # loop to iteratively lower the threshold until we find at least min_match ids
-	    for i in range(2, 8):
-		# reinitialize encounter ids from the histogram
-		threshold = max(self.encounter_id_hist.values()) / float(i) 
-		self.encounter_ids = set([k for k,v in self.encounter_id_hist.items() if v >= threshold])
-		# if we have enough ids, then break out of the loop
-		if len(self.encounter_ids) >= min_match:
-		    break
-
-	    # if we still don't have min_match ids, just use all the ids we've collected so far
-	    if len(self.encounter_ids) < min_match:
-		self.encounter_ids = self.encounter_id_hist.keys()
-
-	    # TEST: for testing override the histogram and just store all the encounter ids
-	    #self.encounter_ids = set(self.encounter_id_hist.keys())
+	    self.encounter_ids = set(self.encounter_id_hist.keys())
 
 
 if __name__ == "__main__":
