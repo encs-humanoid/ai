@@ -471,6 +471,10 @@ class Faces(object):
 	    	same_faces.append(face)
 		if face.name is not None:
 		    name_count[face.name] += 1
+	# for each face name, group the most common faces to it
+	# First, group all faces with the same name
+	faces_by_name = self.group_faces_by_name(same_faces)
+	# Second, add closest matching no-name faces to each named face
 	# determine the most common name of the collected faces
 	if len(name_count) > 0:
 	    names = [n for n in name_count.keys()]
@@ -479,16 +483,7 @@ class Faces(object):
 	else:
 	    name = None
 	# combine the faces into one object under a single name
-	if len(same_faces) > 0:
-	    face = same_faces[0]
-	    face.name = name
-	    for other_face in same_faces[1:]:
-		for i in other_face.encounter_id_hist:
-		    if i in face.encounter_id_hist:
-			face.encounter_id_hist[i] = max(face.encounter_id_hist[i], other_face.encounter_id_hist[i])
-		    else:
-			face.encounter_id_hist[i] = other_face.encounter_id_hist[i]
-		self.faces.remove(other_face)
+	self.combine_faces2(same_faces, name)
 
 	top_overlap = min_match # init to min_match to exclude low matches
 	top_faces = []
@@ -520,6 +515,31 @@ class Faces(object):
 		    top_face = face
 		    longest = len(face.encounter_ids)
 	return top_face  # may be None if no match was > min_match threshold
+
+
+    def group_faces_by_name(self, same_faces):
+    	faces_by_name = collections.defaultdict(list)
+	for face in same_faces:
+	    if face.name is not None:
+	    	faces_by_name[face.name].append(face)
+	return faces_by_name
+
+
+    def combine_faces2(self, same_faces, name):
+	if len(same_faces) > 0:
+	    face = same_faces[0]  # keep the first face
+	    face.name = name	  # assign the name
+	    # merge the other faces into it
+	    for other_face in same_faces[1:]:
+		for i in other_face.encounter_id_hist:
+		    if i in face.encounter_id_hist:
+			face.encounter_id_hist[i] = max(face.encounter_id_hist[i], other_face.encounter_id_hist[i])
+		    else:
+			face.encounter_id_hist[i] = other_face.encounter_id_hist[i]
+		# remove the other faces from the faces list
+		self.faces.remove(other_face)
+	    return face
+	return None
 
 
     def add(self, recognized_face):

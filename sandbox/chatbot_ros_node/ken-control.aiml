@@ -114,6 +114,11 @@ OK.
 </category>
 
 <category>
+<pattern>RESET NOSE</pattern>
+<template><srai>RESET NODES</srai></template>
+</category>
+
+<category>
 <pattern>YES</pattern>
 <that>ARE YOU SURE YOU WANT ME TO RESTART MY INTERNAL NODES</that>
 <template>
@@ -244,6 +249,13 @@ rostopic pub /joy sensor_msgs/Joy -1 "{header: {seq: 0,stamp: {secs: `date +%s`,
 <pattern>CLEAR TARGET FACE</pattern>
 <template>
 <think><set name="target_face"></set></think>
+OK.</template>
+</category>
+
+<category>
+<pattern>CAPTURE SCREENSHOT</pattern>
+<template>
+<system>gnome-screenshot --display=:0 --file=/home/human/screenshot.png</system>
 OK.</template>
 </category>
 
