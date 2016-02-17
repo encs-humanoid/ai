@@ -33,9 +33,11 @@ from __future__ import division
 from __future__ import print_function
 from time import time
 from vision.msg import DetectedFace
+from vision.msg import NamedFace
 from vision.msg import RecognizedFace
 from vision.msg import TargetFace
 import collections
+import json
 import random
 import sys
 import numpy as np
@@ -48,6 +50,7 @@ import atexit
 import datetime
 
 kb_file = "kb.p"      # default name for the knowledge base
+faces_file = "faces.txt"  # default name for the face-name mapping file
 
 botAttributes = {
     "name":           "Ken",
@@ -83,6 +86,7 @@ class AIRespondNode(object):
         self.bot.learn("aiml-startup.xml")
         self.bot.respond("load aiml b")
 	self.faces_in_view = []
+	self.tracked_faces = {}  # map keyed by track_id, value of Face
 
         for key, value in botAttributes.iteritems():
             self.bot.setBotPredicate(key, value)
@@ -97,6 +101,7 @@ class AIRespondNode(object):
 	speech_info_topic = self.get_param('~in_speech_info', '/speech_info')
 	say_topic = self.get_param('~out_response', '/say')
 	target_topic = self.get_param('~out_target', '/target_face')
+	name_topic = self.get_param('~name', '/named_face')
 	self.max_target_hold_sec = float(self.get_param('~max_target_hold_sec', '15.0'))
 	min_match = int(self.get_param('~min_match', '4'))
 	delta_xy_px = int(self.get_param('~delta_xy_px', '20'))
@@ -108,6 +113,7 @@ class AIRespondNode(object):
 
         self.pub = rospy.Publisher(say_topic, String, queue_size=1)
 	self.target_face_pub = rospy.Publisher(target_topic, TargetFace, queue_size=1)
+	self.named_face_pub = rospy.Publisher(name_topic, NamedFace, queue_size=5)
         rospy.Subscriber(speech_topic, String, self.on_recognized_speech)
         rospy.Subscriber(detected_face_topic, DetectedFace, self.on_detected_face)
         rospy.Subscriber(face_topic, RecognizedFace, self.on_recognized_face)
@@ -135,6 +141,28 @@ class AIRespondNode(object):
         else:
             self.kb = self.bot.getSessionData(self.session_id)
 	    self.setkb("faces", Faces())
+
+	# load a map of encounter ids to face name frequencies
+	if os.path.exists(faces_file):
+	    with open(faces_file, "rb") as f:
+	    	m = json.load(f)
+	    # the JSON save process converts the encounter ids to strings; make them ints again
+	    self.faces_map = {}
+	    for k in m.keys():
+	    	self.faces_map[int(k)] = m[k]
+	else:
+	    self.faces_map = {}
+	    # if not saved, initialize face name frequency map from the faces data structure
+	    m = self.faces_map
+	    for face in faces.faces:
+		if face.name is not None:
+		    for encounter_id in face.encounter_ids:
+			if encounter_id not in m:
+			    m[encounter_id] = { face.name: 1 }
+			elif face.name in m[encounter_id]:
+			    m[encounter_id][face.name] += 1
+			else:
+			    m[encounter_id][face.name] = 1
 
 
     def getkb(self, key):
@@ -189,53 +217,37 @@ class AIRespondNode(object):
 	# update the facesinview property with the max count of faces from either camera within
 	# the last time period
 
-	counts = {}
-	counts[detected_face.header.frame_id] = 1
 	to_remove = []
 	for f in self.faces_in_view:
 	    # if new face overlaps with position of old face, remove the old one
-	    delta_x = abs(detected_face.x - f.f.x)
-	    delta_y = abs(detected_face.y - f.f.y)
-	    delta_w = abs(detected_face.w - f.f.w)
-	    delta_h = abs(detected_face.h - f.f.h)
-	    if delta_x <= delta_xy_px and \
-	       delta_y <= delta_xy_px and \
-	       delta_w <= delta_xy_px and \
-	       delta_h <= delta_xy_px:
+	    if detected_face.track_id == f.f.track_id:
 		to_remove.append(f)
 
 	for f in to_remove:
 	    self.faces_in_view.remove(f)
 
-	self.update_count_of_faces_in_view(counts)
-
+	# TODO merge the logic in this function with usage of self.tracked_faces
 	self.faces_in_view.append(FaceInView(detected_face, time()))
 
 
-    def update_count_of_faces_in_view(self, initial_counts={}):
+    def update_count_of_faces_in_view(self):
 	now = time()
 	to_remove = []
-	counts = dict(initial_counts)
+	counts = {}
+
+	# remove faces which haven't been seen recently
 	for f in self.faces_in_view:
 	    #rospy.loginfo(str(now - f.stamp))
-	    if now - f.stamp < max_recent_face_time_ms / 1000.:
-	    	if f.f.header.frame_id in counts:
-		    counts[f.f.header.frame_id] += 1
-		else:
-		    counts[f.f.header.frame_id] = 1
-	    else:
+	    if now - f.stamp >= max_recent_face_time_ms / 1000.:
 	    	to_remove.append(f)
 	
 	for f in to_remove:
 	    self.faces_in_view.remove(f)
 
-	if len(counts) > 0:
-	    in_view = max(counts.values())
-	else:
-	    in_view = 0
+	in_view = len(self.faces_in_view)
 	self.setkb("facesinview", str(in_view))
 	#rospy.loginfo(str(self.faces_in_view))
-	#rospy.loginfo('%s faces in view', self.getkb("facesinview"))
+	rospy.loginfo('%s faces in view', self.getkb("facesinview"))
 
 
     def on_recognized_face(self, recognized_face):
@@ -249,6 +261,32 @@ class AIRespondNode(object):
 	else:
 	    face.update(recognized_face.encounter_ids)
 
+	if recognized_face.track_id not in self.tracked_faces:
+	    self.tracked_faces[recognized_face.track_id] = Face(recognized_face.track_id)
+	tracked_face = self.tracked_faces[recognized_face.track_id]
+	# add the recognized face encounter ids to the track encounter ids
+	tracked_face.update(recognized_face.encounter_ids)
+	# find most likely name given track encounter ids + recognized face encounter ids, set as track name
+	names = Names.for_face(tracked_face, self.faces_map)
+	# publish NamedFace message with track id and name (include all matching names and confidence)
+	self.publish_named_face(recognized_face, names)
+	if len(names.names) > 0:
+	    # set the face name to the most common name for the recognized face encounter ids
+	    tracked_face.name = names.names[0]
+	    # update faces_map to increment count for name for recognized_face encounter ids <-- this is the permanent memory
+	    if tracked_face.name is not None:
+		for encounter_id in recognized_face.encounter_ids:
+		    m = self.faces_map
+		    if encounter_id not in m:
+			m[encounter_id] = { tracked_face.name: 1 }
+		    elif face.name in m[encounter_id]:
+			m[encounter_id][tracked_face.name] += 1
+		    else:
+			m[encounter_id][tracked_face.name] = 1
+	# TODO Clean up the following when old mechanism is removed
+	# replace face with the tracked face
+	face = tracked_face
+
 	# store the face for matching by proximity
 	if enable_proximity_match:
 	    faces.append_recent_face(RecentFace(face, recognized_face))
@@ -259,12 +297,17 @@ class AIRespondNode(object):
 	converser_name = self.getkb("name")
 	if target_face.name:
 	    # if the target is different from the current converser's name
-	    if target_face.name != converser_name:
+	    if not converser_name:
 	    	# update converser name to match target face name
 		# set in ken-recognize.aiml rather than here
 		rospy.loginfo('Recognized face of %s', str(target_face.name))
 		# trigger response which includes converser's name
 		self.respond_to("recognize " + target_face.name)
+	    elif target_face.name != converser_name:
+	    	# correct the target name to the converser name
+		target_face.name = converser_name
+		for encounter_id in target_face.encounter_ids:
+		    self.faces_map[encounter_id] = { target_face.name: 1 }
 #	    else:
 #		rospy.loginfo('got target=%s and convers=%s', str(target_face.name), converser_name)
 	elif converser_name and converser_name.strip():
@@ -272,6 +315,8 @@ class AIRespondNode(object):
 	    # the converser name applies to the target, since we cleared
 	    # the converser name when the target face was last changed.
 	    target_face.name = converser_name
+	    for encounter_id in target_face.encounter_ids:
+	    	self.faces_map[encounter_id] = { target_face.name: 1 }
 	    rospy.loginfo('Associated name %s to face %s', converser_name, str(sorted(target_face.encounter_ids)))
 	elif greeting:
 	    # we know neither target face nor converser's name
@@ -333,6 +378,8 @@ class AIRespondNode(object):
 	# publish target face message
 	target_face_msg = TargetFace()
 	target_face_msg.header = recognized_face.header
+	target_face_msg.track_id = recognized_face.track_id
+	target_face_msg.track_color = recognized_face.track_color
 	target_face_msg.x = recognized_face.x
 	target_face_msg.y = recognized_face.y
 	target_face_msg.w = recognized_face.w
@@ -343,6 +390,16 @@ class AIRespondNode(object):
 	target_face_msg.recog_name = str(face.name)
 	target_face_msg.recog_id = face.id
 	self.target_face_pub.publish(target_face_msg)
+
+
+    def publish_named_face(self, recognized_face, names):
+    	# publish named face message
+	named_face_msg = NamedFace()
+	named_face_msg.header = recognized_face.header
+	named_face_msg.track_id = recognized_face.track_id
+	named_face_msg.names = names.names
+	named_face_msg.confs = names.confs
+	self.named_face_pub.publish(named_face_msg)
 
 
     def save_kb(self):
@@ -356,6 +413,9 @@ class AIRespondNode(object):
 	    faces = self.getkb("faces")
 	    for i, face in enumerate(faces.faces):
 		rospy.loginfo("%d: Face %d of %s, %s", i, face.id, face.name, str(sorted(face.encounter_ids)))
+	    # export the face encounter to name frequence mapping data
+	    with open(faces_file, "wb") as f:
+	    	json.dump(self.faces_map, f)
         rospy.loginfo(rospy.get_caller_id() + ": Exiting AI Respond Node")
 
     def run(self):
@@ -635,6 +695,43 @@ class Face(object):
 		self.encounter_id_hist[id] += 1
 
 	    self.encounter_ids = set(self.encounter_id_hist.keys())
+
+
+class Names(object):
+
+    @staticmethod
+    def for_face(tracked_face, face_names_map):
+    	# determine matching names for the face from the face names map
+	encounter_ids = tracked_face.encounter_ids
+	name_freqs = {}
+	for encounter_id in encounter_ids:
+	    if encounter_id in face_names_map:
+	    	counts_by_name = face_names_map[encounter_id]
+		rospy.loginfo("Counts by name for %d: %s", encounter_id, str(counts_by_name))
+		total = sum(counts_by_name.values())
+		names = list(counts_by_name.keys())
+		freqs = [counts_by_name[n] / total for n in names]
+		for name, freq in zip(names, freqs):
+		    if name in name_freqs:
+			name_freqs[name] += freq
+		    else:
+			name_freqs[name] = freq
+	    else:
+	    	rospy.loginfo("Encounter id %d is not in face names map", encounter_id)
+		rospy.loginfo("keys = %s", str(face_names_map.keys()))
+	names = list(name_freqs.keys())
+	if len(names) > 0:
+	    freqs = [name_freqs[n] / len(encounter_ids) for n in names]
+	    # return a Names object with the names and confidences ordered from high to low
+	    n, c = zip(*sorted(zip(names, freqs), key=lambda x: x[1], reverse=True))
+	    return Names(list(n), list(c))
+	else:
+	    return Names([], [])
+
+
+    def __init__(self, names, confidences):
+	self.names = names
+	self.confs = confidences
 
 
 if __name__ == "__main__":
