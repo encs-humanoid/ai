@@ -102,7 +102,7 @@ class AIRespondNode(object):
 	say_topic = self.get_param('~out_response', '/say')
 	target_topic = self.get_param('~out_target', '/target_face')
 	name_topic = self.get_param('~name', '/named_face')
-	self.max_target_hold_sec = float(self.get_param('~max_target_hold_sec', '15.0'))
+	self.max_target_hold_sec = float(self.get_param('~max_target_hold_sec', '30.0'))
 	min_match = int(self.get_param('~min_match', '4'))
 	delta_xy_px = int(self.get_param('~delta_xy_px', '20'))
 	# TODO perhaps delta_t_ms and max_recent_face_time_ms should be one parameter?
@@ -138,6 +138,7 @@ class AIRespondNode(object):
 	    self.setkb("_inputStack", [])
 	    self.setkb("target_face", None)
 	    self.setkb("name", "")
+	    self.setkb("look_at_name", "")
         else:
             self.kb = self.bot.getSessionData(self.session_id)
 	    self.setkb("faces", Faces())
@@ -153,16 +154,16 @@ class AIRespondNode(object):
 	else:
 	    self.faces_map = {}
 	    # if not saved, initialize face name frequency map from the faces data structure
-	    m = self.faces_map
-	    for face in faces.faces:
-		if face.name is not None:
-		    for encounter_id in face.encounter_ids:
-			if encounter_id not in m:
-			    m[encounter_id] = { face.name: 1 }
-			elif face.name in m[encounter_id]:
-			    m[encounter_id][face.name] += 1
-			else:
-			    m[encounter_id][face.name] = 1
+	    #m = self.faces_map
+	    #for face in self.faces.faces:
+	    #	if face.name is not None:
+	    #	    for encounter_id in face.encounter_ids:
+	    #		if encounter_id not in m:
+	    #		    m[encounter_id] = { face.name: 1 }
+	    #		elif face.name in m[encounter_id]:
+	    #		    m[encounter_id][face.name] += 1
+	    #		else:
+	    #		    m[encounter_id][face.name] = 1
 
 
     def getkb(self, key):
@@ -279,7 +280,7 @@ class AIRespondNode(object):
 		    m = self.faces_map
 		    if encounter_id not in m:
 			m[encounter_id] = { tracked_face.name: 1 }
-		    elif face.name in m[encounter_id]:
+		    elif tracked_face.name in m[encounter_id]:
 			m[encounter_id][tracked_face.name] += 1
 		    else:
 			m[encounter_id][tracked_face.name] = 1
@@ -293,36 +294,65 @@ class AIRespondNode(object):
 
 	target_face, greeting = self.update_target_face(face, recognized_face)
 
-	# if we have a name for both target and converser
+	# if the target face has provided a name, store it
 	converser_name = self.getkb("name")
-	if target_face.name:
-	    # if the target is different from the current converser's name
-	    if not converser_name:
-	    	# update converser name to match target face name
-		# set in ken-recognize.aiml rather than here
-		rospy.loginfo('Recognized face of %s', str(target_face.name))
-		# trigger response which includes converser's name
-		self.respond_to("recognize " + target_face.name)
-	    elif target_face.name != converser_name:
-	    	# correct the target name to the converser name
-		target_face.name = converser_name
+	if converser_name:
+	    if converser_name != target_face.name:
+	    	# correct the name of the target face
 		for encounter_id in target_face.encounter_ids:
-		    self.faces_map[encounter_id] = { target_face.name: 1 }
+		    if encounter_id in self.faces_map and target_face.name in self.faces_map[encounter_id]:
+			self.faces_map[encounter_id][converser_name] = self.faces_map[encounter_id][target_face.name]
+			del self.faces_map[encounter_id][target_face.name]
+		    else:
+		    	self.faces_map[encounter_id] = { converser_name: 1 }
+		target_face.name = converser_name
+
+	look_at_name = self.getkb("look_at_name")
+	if look_at_name:
+	    # Do we know that name?
+	    candidates = [tf for tf in self.tracked_faces.items() if tf[1].name.lower() == look_at_name.lower()]
+	    if len(candidates) == 0:
+		self.respond_to("ken has not seen " + look_at_name)
+	    else:
+		# Is that name in view?
+		tracks_in_view = [f.f.track_id for f in self.faces_in_view]
+		candidates = [tf for tf in candidates if tf[0] in tracks_in_view]
+		if len(candidates) == 0:
+		    self.respond_to("ken does not see " + look_at_name)
+		else:
+		    self.set_target_face(candidates[-1][1])  # target last known occurence
+	    self.setkb("look_at_name", "")
+	       
+	# if we have a name for both target and converser
+	#converser_name = self.getkb("name")
+	#if target_face.name:
+	#    # if the target is different from the current converser's name
+	#    if not converser_name:
+	#    	# update converser name to match target face name
+	#	# set in ken-recognize.aiml rather than here
+	#	rospy.loginfo('Recognized face of %s', str(target_face.name))
+	#	# trigger response which includes converser's name
+	#	#self.respond_to("recognize " + target_face.name)
+	#    elif target_face.name != converser_name:
+	#    	# correct the target name to the converser name
+	#	target_face.name = converser_name
+	#	for encounter_id in target_face.encounter_ids:
+	#	    self.faces_map[encounter_id] = { target_face.name: 1 }
 #	    else:
 #		rospy.loginfo('got target=%s and convers=%s', str(target_face.name), converser_name)
-	elif converser_name and converser_name.strip():
-	    # we have a converser name, but no target name.  Assume that
-	    # the converser name applies to the target, since we cleared
-	    # the converser name when the target face was last changed.
-	    target_face.name = converser_name
-	    for encounter_id in target_face.encounter_ids:
-	    	self.faces_map[encounter_id] = { target_face.name: 1 }
-	    rospy.loginfo('Associated name %s to face %s', converser_name, str(sorted(target_face.encounter_ids)))
-	elif greeting:
-	    # we know neither target face nor converser's name
-	    # generate a generic greeting to solicit the person's name
-	    rospy.loginfo('Recognized face of stranger %s', str(sorted(target_face.encounter_ids)))
-	    self.respond_to("hello")
+	#elif converser_name and converser_name.strip():
+	#    # we have a converser name, but no target name.  Assume that
+	#    # the converser name applies to the target, since we cleared
+	#    # the converser name when the target face was last changed.
+	#    target_face.name = converser_name
+	#    for encounter_id in target_face.encounter_ids:
+	#    	self.faces_map[encounter_id] = { target_face.name: 1 }
+	#    rospy.loginfo('Associated name %s to face %s', converser_name, str(sorted(target_face.encounter_ids)))
+	#elif greeting:
+	#    # we know neither target face nor converser's name
+	#    # generate a generic greeting to solicit the person's name
+	#    rospy.loginfo('Recognized face of stranger %s', str(sorted(target_face.encounter_ids)))
+	#    #self.respond_to("hello")
 #	else:
 #	    rospy.loginfo('no greeting for %s', str(target_face.name))
 
@@ -336,10 +366,10 @@ class AIRespondNode(object):
 	if not target_face:		     # no target face set yet
 	    rospy.loginfo('target face is null')
 	    # set target face if not set
-	    target_face = self.set_target_face(face, recognized_face)
+	    target_face = self.set_target_face(face)
 	    greeting = True
-	elif target_face != face:  # recognized a different face than the target
-	    rospy.loginfo('Target %d, recognized %d: Face of %s, %s', target_face.id, face.id, face.name, str(sorted(face.encounter_ids)))
+	elif target_face != face and target_face.name != face.name:  # recognized a different face than the target
+	    #rospy.loginfo('Target %d, recognized %d: Face of %s, %s', target_face.id, face.id, face.name, str(sorted(face.encounter_ids)))
 	    # get the time since the last match to the target face
 	    last_seen_time = self.getkb("target_face_timestamp_s")
 	    time_since_last = time() - last_seen_time
@@ -353,23 +383,26 @@ class AIRespondNode(object):
 		rospy.loginfo('Switching target face from %d: %s to %d: %s after %g seconds with %g probability', target_face.id, str(target_face.name), face.id, str(face.name), time_since_last, p)
 		if not face.name or target_face.name != face.name: # only greet if the name changes
 		    greeting = True
-	    	target_face = self.set_target_face(face, recognized_face)
+	    	target_face = self.set_target_face(face)
 	else:				     # recognized current target face
 	    #rospy.loginfo('target face update timestamp')
 	    # update the time that the current target was last recognized
-	    target_face = self.set_target_face(face, recognized_face)
+	    target_face = self.set_target_face(face)
 
 	return target_face, greeting
 
 
-    def set_target_face(self, face, recognized_face):
+    def set_target_face(self, face):
     	target_face = face
 	previous_target = self.getkb("target_face")
 	self.setkb("target_face", target_face)
 	self.setkb("target_face_timestamp_s", time())
 	if target_face != previous_target:
-	    # clear the converser name, since we changed target faces
-	    self.setkb("name", "")
+	    # set the converser name to the new target
+	    if target_face.name:
+	    	self.setkb("name", target_face.name)
+	    else:
+		self.setkb("name", "")
 	    rospy.loginfo('Set target face to %d: %s, %s', target_face.id, str(target_face.name), str(sorted(target_face.encounter_ids)))
 	return target_face
 
@@ -378,8 +411,8 @@ class AIRespondNode(object):
 	# publish target face message
 	target_face_msg = TargetFace()
 	target_face_msg.header = recognized_face.header
-	target_face_msg.track_id = recognized_face.track_id
-	target_face_msg.track_color = recognized_face.track_color
+	target_face_msg.track_id = target_face.id
+	target_face_msg.track_color = recognized_face.track_color  # TODO get the correct color for the target face
 	target_face_msg.x = recognized_face.x
 	target_face_msg.y = recognized_face.y
 	target_face_msg.w = recognized_face.w
@@ -522,7 +555,7 @@ class Faces(object):
     def find_similar_face(self, recognized_face, node):
 	global min_match
 	ids = set(recognized_face.encounter_ids)
-	rospy.loginfo("finding faces similar to " + str(sorted(ids)))
+	#rospy.loginfo("finding faces similar to " + str(sorted(ids)))
 	
 	# before searching for a matching face, first use information from this
 	# recognized face to consolidate duplicate faces.  If two known faces
@@ -537,13 +570,13 @@ class Faces(object):
 	for face in self.faces:
 	    overlap = len(set(face.encounter_ids) & ids)
 	    if overlap >= top_overlap:
-		rospy.loginfo("top overlap with " + str(face.id) + " is " + str(overlap))
+		#rospy.loginfo("top overlap with " + str(face.id) + " is " + str(overlap))
 		# track equivalent top matches
 	        if overlap > top_overlap:
 		    top_faces[:] = []	    # clear list if better match found
 		top_faces.append(face) 
 	        top_overlap = overlap
-	rospy.loginfo("found " + str(len(top_faces)) + " top faces: " + str([f.id for f in top_faces]))
+	#rospy.loginfo("found " + str(len(top_faces)) + " top faces: " + str([f.id for f in top_faces]))
 	top_face = None
 
 	# look for a face with a name first
@@ -551,10 +584,10 @@ class Faces(object):
 	    if face.name:
 	    	top_face = face
 		break
-	if top_face:
-	    rospy.loginfo("found top face with name: " + str(top_face.id) + ", " + str(top_face.name))
-	else:
-	    rospy.loginfo("no top face with name found")
+	#if top_face:
+	#    rospy.loginfo("found top face with name: " + str(top_face.id) + ", " + str(top_face.name))
+	#else:
+	#    rospy.loginfo("no top face with name found")
 
 	# if no face with a name, choose the most general match
 	longest = top_overlap
@@ -563,10 +596,10 @@ class Faces(object):
 		if len(face.encounter_ids) >= longest: # use >= to ensure at least one match
 		    top_face = face
 		    longest = len(face.encounter_ids)
-	if top_face:
-	    rospy.loginfo("returning top face: " + str(top_face.id) + ", " + str(top_face.name) + ", longest=" + str(longest))
-	else:
-	    rospy.loginfo("no similar face found for min_match=" + str(min_match))
+	#if top_face:
+	#    rospy.loginfo("returning top face: " + str(top_face.id) + ", " + str(top_face.name) + ", longest=" + str(longest))
+	#else:
+	#    rospy.loginfo("no similar face found for min_match=" + str(min_match))
 	return top_face  # may be None if no match was > min_match threshold
 
 
@@ -576,11 +609,11 @@ class Faces(object):
 	same_faces = []
 	name_count = collections.defaultdict(int)
 	# collect all faces for the same person
-        rospy.loginfo("collecting faces of same person from " + str(len(self.faces)) + " faces")
+        #rospy.loginfo("collecting faces of same person from " + str(len(self.faces)) + " faces")
 	for face in self.faces:
 	    overlap = len(set(face.encounter_ids) & ids)
-	    if overlap > 0:
-		rospy.loginfo("overlap with " + str(face.id) + " is " + str(overlap))
+	    #if overlap > 0:
+	    #	rospy.loginfo("overlap with " + str(face.id) + " is " + str(overlap))
 	    if overlap >= min_match:
 	    	same_faces.append(face)
 		if face.name is not None:
@@ -596,7 +629,7 @@ class Faces(object):
 	    name = names[np.argmax(counts)]
 	else:
 	    name = None
-        rospy.loginfo("determined most common name is " + str(name))
+        #rospy.loginfo("determined most common name is " + str(name))
 	# combine the faces into one object under a single name
 	self.combine_faces2(same_faces, name, node)
 
@@ -707,7 +740,7 @@ class Names(object):
 	for encounter_id in encounter_ids:
 	    if encounter_id in face_names_map:
 	    	counts_by_name = face_names_map[encounter_id]
-		rospy.loginfo("Counts by name for %d: %s", encounter_id, str(counts_by_name))
+		#rospy.loginfo("Counts by name for %d: %s", encounter_id, str(counts_by_name))
 		total = sum(counts_by_name.values())
 		names = list(counts_by_name.keys())
 		freqs = [counts_by_name[n] / total for n in names]
@@ -716,9 +749,9 @@ class Names(object):
 			name_freqs[name] += freq
 		    else:
 			name_freqs[name] = freq
-	    else:
-	    	rospy.loginfo("Encounter id %d is not in face names map", encounter_id)
-		rospy.loginfo("keys = %s", str(face_names_map.keys()))
+	    #else:
+	    #	rospy.loginfo("Encounter id %d is not in face names map", encounter_id)
+	    #	rospy.loginfo("keys = %s", str(face_names_map.keys()))
 	names = list(name_freqs.keys())
 	if len(names) > 0:
 	    freqs = [name_freqs[n] / len(encounter_ids) for n in names]
