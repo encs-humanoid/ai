@@ -187,6 +187,27 @@ rostopic pub /joy sensor_msgs/Joy -1 "{header: {seq: 0,stamp: {secs: `date +%s`,
 </category>
 
 <category>
+<pattern>LOOK AT *</pattern>
+<template>
+<think><set name="look_at_name"><star/></set></think>
+</template>
+</category>
+
+<category>
+<pattern>KEN HAS NOT SEEN *</pattern>
+<template>
+I have not seen <star/>.
+</template>
+</category>
+
+<category>
+<pattern>KEN DOES NOT SEE *</pattern>
+<template>
+I do not see <star/>.
+</template>
+</category>
+
+<category>
 <pattern>RESET SILENCE THRESHOLD</pattern>
 <template>
 <system>rostopic pub /listen_control std_msgs/String -1 "reset_silence_threshold" > /dev/null</system>
