@@ -10,6 +10,7 @@
 
 import rospy
 from std_msgs.msg import String
+import time
 
 
 
@@ -70,8 +71,8 @@ def talker():
         #rospy.loginfo(str)
 	wait_for_response = True
         pub.publish(str)
-	while wait_for_response and not rospy.is_shutdown():
-	    rate.sleep()
+	rate.sleep()
+	time.sleep(1.0)
 
 
 if __name__ == "__main__":
