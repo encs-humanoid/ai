@@ -310,7 +310,7 @@ class AIRespondNode(object):
 	look_at_name = self.getkb("look_at_name")
 	if look_at_name:
 	    # Do we know that name?
-	    candidates = [tf for tf in self.tracked_faces.items() if tf[1].name.lower() == look_at_name.lower()]
+	    candidates = [tf for tf in self.tracked_faces.items() if str(tf[1].name).lower() == str(look_at_name).lower()]
 	    if len(candidates) == 0:
 		self.respond_to("ken has not seen " + look_at_name)
 	    else:
