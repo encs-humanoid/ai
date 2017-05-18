@@ -36995,12 +36995,14 @@ Do you think I am some kind of world clock?
 </template>
 </category>
 
+<!--
 <category>
 <pattern>WHAT IS YOUR FAVORITE * SONG</pattern>
 <template>
 <srai>WHAT IS YOUR FAVORITE SONG</srai>
 </template>
 </category>
+-->
 
 <category>
 <pattern>WHAT IS YOUR FAVORITE ACTOR</pattern>
@@ -37184,12 +37186,14 @@ My favorite part of <get name="it"/>?
 </template>
 </category>
 
+<!--
 <category>
 <pattern>WHAT IS YOUR FAVORITE SONG *</pattern>
 <template>
 <srai>WHAT IS YOUR FAVORITE SONG</srai>
 </template>
 </category>
+-->
 
 <category>
 <pattern>WHAT IS YOUR FAVORITE STOCK *</pattern>
