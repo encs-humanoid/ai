@@ -17,6 +17,7 @@ import time
 # The following from http://blog.mathieu-leplatre.info/colored-output-in-console-with-python.html
 #===================================================================
 import sys
+from subprocess import call
 
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 
@@ -69,8 +70,11 @@ def talker():
     while not rospy.is_shutdown():
         str = raw_input("> ")
         #rospy.loginfo(str)
-	wait_for_response = True
-        pub.publish(str)
+	if str.startswith('/stop'):
+		call(["killall", "espeak"])
+	else:
+		wait_for_response = True
+        	pub.publish(str)
 	rate.sleep()
 	time.sleep(1.0)
 

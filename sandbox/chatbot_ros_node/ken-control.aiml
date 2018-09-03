@@ -280,4 +280,30 @@ OK.</template>
 OK.</template>
 </category>
 
+<category>
+<pattern>SET SYSTEM VOLUME TO *</pattern>
+<template>
+<think>
+<set name="system_volume_input"><star/></set>
+<set name="system_volume">
+    <!-- filter the input to valid values to avoid command line injection risk -->
+    <condition name="system_volume_input">
+	<li value="10%">10%</li>
+	<li value="20%">20%</li>
+	<li value="30%">30%</li>
+	<li value="40%">40%</li>
+	<li value="50%">50%</li>
+	<li value="60%">60%</li>
+	<li value="70%">70%</li>
+	<li value="80%">80%</li>
+	<li value="90%">90%</li>
+	<li value="100%">100%</li>
+	<li></li>
+    </condition>
+</set>
+</think>
+<system>amixer set PCM <get name="system_volume"/> > /dev/null</system>
+Volume set to <get name="system_volume"/>.
+</template>
+</category>
 </aiml>
