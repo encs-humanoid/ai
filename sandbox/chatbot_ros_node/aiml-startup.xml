@@ -8,6 +8,7 @@
 <!-- Load standard AIML set -->
 <learn>pyaiml/standard/std-*.aiml</learn>
 <learn>ken-*.aiml</learn>
+<learn>ken-favsong.aiml</learn>
 </template>
 </category>
 

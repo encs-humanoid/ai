@@ -32,5 +32,27 @@
     </category>
 </topic>
 
+
+<category> 
+	<pattern>WHAT IS YOUR FAVORITE MOVIE</pattern>
+	<template>
+		My favorite movie is Short Circuit, have you seen it?
+		<think>
+			<set name="topic">SHORT CIRCUIT</set>
+		</think>
+	</template>
+</category>
+
+<topic name="SHORT CIRCUIT">
+	<category>
+		<that>HAVE YOU SEEN IT</that>
+		<pattern>YES</pattern>
+		<template>That is cool.  You should watch it again.</template>
+	</category>
+	<category>
+		<that>HAVE YOU SEEN IT</that>
+		<pattern>NO</pattern>
+		<template>You should go see it.  It improves character.</template>
+</topic>
 </aiml>
 

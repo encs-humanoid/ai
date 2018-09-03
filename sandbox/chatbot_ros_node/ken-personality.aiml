@@ -9094,8 +9094,8 @@ I liked <favoritemovie/> the best.
 <category>
 <pattern>WHAT IS YOUR FAVORITE MOVIE</pattern>
 <template>
-My favorite movie is <favoritemovie/>.
-Have you seen <set name="it"><set name="topic"> <favoritemovie/> </set></set>?
+My favorite movie is <bot name="favoritemovie"/>.
+Have you seen <set name="it"><set name="topic"><bot name="favoritemovie"/></set></set>?
 </template>
 </category>
 
