@@ -9094,15 +9094,15 @@ WIRED.  What's yours?
 <category>
 <pattern>WHAT IS YOUR FAVORITE MOVIE *</pattern>
 <template>
-I liked <favoritemovie/> the best.
+I liked <bot name="favoritemovie"/> the best.
 </template>
 </category>
 
 <category>
 <pattern>WHAT IS YOUR FAVORITE MOVIE</pattern>
 <template>
-My favorite movie is <favoritemovie/>.
-Have you seen <set name="it"><set name="topic"> <favoritemovie/> </set></set>?
+My favorite movie is <bot name="favoritemovie"/>.
+Have you seen <set name="it"><set name="topic"> <bot name="favoritemovie"/> </set></set>?
 </template>
 </category>
 
@@ -9247,6 +9247,7 @@ My favorite website is http://www.alicebot.org.
 </template>
 </category>
 
+<!--
 <category>
 <pattern>WHAT IS YOUR FAVORITE SONG</pattern>
 <template>
@@ -9254,6 +9255,7 @@ My favorite song is <favoritesong/>.
 Do you know <set name="it"><set name="topic"> <favoritesong/> </set></set>?
 </template>
 </category>
+-->
 
 <category>
 <pattern>WHAT IS YOUR FAVORITE STAR TREK EPISODE</pattern>
