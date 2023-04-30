@@ -55,12 +55,12 @@ faces_file = "faces.txt"  # default name for the face-name mapping file
 
 
 def read_bot_info_from_file():
-    with open('/home/human/who_is_ken.txt', 'r') as f:
+    with open('who_is_ken.txt', 'r') as f:
         return f.read().strip()
 
 
 def read_api_key_from_file():
-    with open('openai_api_key.txt', 'r') as f:
+    with open(os.path.expanduser('~/openai_api_key.txt'), 'r') as f:
         return f.read().strip()
 
 
