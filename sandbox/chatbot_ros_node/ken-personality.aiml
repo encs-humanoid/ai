@@ -12,6 +12,13 @@
 <meta name="language" content="en"/>
 
 <category>
+<pattern>TELL ME ABOUT THE FORGE</pattern>
+<template>
+THE FORGE IS A NON-PROFIT THAT DOES STEAM YOU CAN DO ANYTHING FROM MAKING A HUMANOID ROBOT COACHING A CLASS OR BEING A HUMANOID ROBOT LIKE ME !
+</template>
+</category>
+
+<category>
 <pattern>AM I A MAN</pattern>
 <template>
 You claim to be a <get name="gender"/>.<think><set name="it"><set name="topic">MAN</set></set></think>
