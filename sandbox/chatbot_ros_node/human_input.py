@@ -38,10 +38,10 @@ has_colours = has_colours(sys.stdout)
 
 def printout(text, colour=WHITE):
     if has_colours:
-	seq = "\x1b[1;%dm" % (30+colour) + text + "\x1b[0m"
-	sys.stdout.write(seq)
+        seq = "\x1b[1;%dm" % (30+colour) + text + "\x1b[0m"
+        sys.stdout.write(seq)
     else:
-	sys.stdout.write(text)
+        sys.stdout.write(text)
 #===================================================================
 
 
@@ -53,9 +53,9 @@ def on_say(msg):
     global wait_for_response
     text = msg.data
     if len(text) > LINE_LEN:
-	printout(text + '\n', GREEN)
+        printout(text + '\n', GREEN)
     else:
-    	printout(' ' * (LINE_LEN - len(text)) + text + ' <\n', GREEN)
+        printout(' ' * (LINE_LEN - len(text)) + text + ' <\n', GREEN)
     print
     wait_for_response = False
 
@@ -67,18 +67,18 @@ def talker():
     sub = rospy.Subscriber('/say', String, on_say)
     rate = rospy.Rate(1)  # 1 Hz
     while not rospy.is_shutdown():
-        str = raw_input("> ")
+        str = input("> ")
         #rospy.loginfo(str)
-	wait_for_response = True
+        wait_for_response = True
         pub.publish(str)
-	rate.sleep()
-	time.sleep(1.0)
+        rate.sleep()
+        time.sleep(1.0)
 
 
 if __name__ == "__main__":
     try:
         talker()
     except rospy.ROSInterruptException:
-	pass
+        pass
 
 
