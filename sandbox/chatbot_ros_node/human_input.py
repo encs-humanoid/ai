@@ -77,8 +77,8 @@ def talker():
         else:
             wait_for_response = True
             pub.publish(str)
-	rate.sleep()
-	time.sleep(1.0)
+        rate.sleep()
+        time.sleep(1.0)
 
 
 if __name__ == "__main__":
