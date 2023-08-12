@@ -54,8 +54,8 @@ kb_file = "kb.p"      # default name for the knowledge base
 faces_file = "faces.txt"  # default name for the face-name mapping file
 
 
-def read_bot_info_from_file():
-    with open('who_is_ken.txt', 'r') as f:
+def read_bot_info_from_file(filename="who_is_ken.txt"):
+    with open(filename, 'r') as f:
         return f.read().strip()
 
 
